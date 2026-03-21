@@ -2,6 +2,7 @@
 
 import { UserButton, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import { navItems } from "./landing-data";
 
@@ -10,7 +11,7 @@ export const Header = () => {
   const isSignedIn = isLoaded && Boolean(userId);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/8 bg-[rgba(10,10,15,0.92)] backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-white/8 bg-[var(--color-header-bg)] backdrop-blur">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-6 px-6 py-5 lg:px-10">
         <Link
           href="/"
@@ -32,6 +33,7 @@ export const Header = () => {
         </nav>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           {!isSignedIn ? (
             <>
             <Link

@@ -86,22 +86,44 @@ export async function POST(req: Request) {
     user?.fullName || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Unknown";
   const clerkEmail =
     user?.primaryEmailAddress?.emailAddress || body.email || "Unknown";
+  const applicantEmail = body.email?.toString().trim() || clerkEmail;
 
-  await resend.emails.send({
-    from: fromEmail,
-    to: recipientEmail,
-    replyTo: body.email || clerkEmail,
-    subject: `Шинэ жолоочийн хүсэлт: ${body.firstName} ${body.lastName}`,
-    html: `
-      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
-        <h2 style="margin-bottom:8px;">Шинэ жолоочийн хүсэлт ирлээ</h2>
-        <p style="margin:0 0 16px;">Clerk хэрэглэгч: <strong>${clerkName}</strong> (${clerkEmail})</p>
-        <table style="border-collapse:collapse;width:100%;max-width:760px">
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-    `,
-  });
+  await Promise.all([
+    resend.emails.send({
+      from: fromEmail,
+      to: recipientEmail,
+      replyTo: applicantEmail,
+      subject: `Шинэ жолоочийн хүсэлт: ${body.firstName} ${body.lastName}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
+          <h2 style="margin-bottom:8px;">Шинэ жолоочийн хүсэлт ирлээ</h2>
+          <p style="margin:0 0 16px;">Clerk хэрэглэгч: <strong>${clerkName}</strong> (${clerkEmail})</p>
+          <table style="border-collapse:collapse;width:100%;max-width:760px">
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `,
+    }),
+    resend.emails.send({
+      from: fromEmail,
+      to: applicantEmail,
+      subject: "Таны жолоочийн хүсэлт амжилттай илгээгдлээ",
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
+          <h2 style="margin-bottom:8px;">Хүсэлт хүлээн авлаа</h2>
+          <p style="margin:0 0 12px;">
+            Сайн байна уу, <strong>${body.firstName} ${body.lastName}</strong>.
+          </p>
+          <p style="margin:0 0 16px;">
+            Таны жолоочийн хүсэлтийг амжилттай хүлээн авлаа. Бид 1-2 ажлын өдрийн дотор шалгаад эргээд холбогдоно.
+          </p>
+          <table style="border-collapse:collapse;width:100%;max-width:760px">
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `,
+    }),
+  ]);
 
   return Response.json({ success: true });
 }
