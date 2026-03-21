@@ -1,0 +1,57 @@
+import Link from "next/link";
+
+import { stats } from "./landing-data";
+
+export const HeroSection = () => {
+  return (
+    <section className="relative overflow-hidden border-b border-white/8 bg-[linear-gradient(135deg,#0A0A0F_0%,#12121A_50%,#0F0F18_100%)] px-6 py-20 lg:px-10 lg:py-28">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,rgba(201,168,76,0.08)_0%,transparent_70%)]" />
+
+      <div className="relative mx-auto max-w-5xl text-center">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.1)] px-4 py-1.5 text-xs tracking-[0.04em] text-[var(--color-gold)]">
+          <span aria-hidden="true">🚗</span>
+          <span>Жолоочтой түрээслэл · 1-7 хоног</span>
+        </div>
+
+        <h1 className="font-display text-5xl font-extrabold leading-none tracking-[-0.08em] text-[var(--color-text)] sm:text-6xl lg:text-7xl">
+          Таны аяллыг
+          <br />
+          <span className="text-[var(--color-gold)]">тав тухтай</span> болгоно
+        </h1>
+
+        <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[var(--color-muted)] sm:text-lg">
+          Туршлагатай жолоочтой машин түрээслэж, хотоос хөдөөд хүртэл
+          аялаарай. Захиалга хялбар, аюулгүй, найдвартай.
+        </p>
+
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/booking"
+            className="rounded-xl bg-[var(--color-gold)] px-8 py-4 text-sm font-medium text-[var(--color-ink)] transition hover:-translate-y-0.5 hover:bg-[var(--color-gold-light)]"
+          >
+            Машин захиалах →
+          </Link>
+          <Link
+            href="/driver/register"
+            className="rounded-xl border border-white/15 px-8 py-4 text-sm font-medium text-[var(--color-text)] transition hover:border-[rgba(201,168,76,0.4)] hover:text-[var(--color-gold)]"
+          >
+            Жолоочоор бүртгүүлэх
+          </Link>
+        </div>
+
+        <div className="mt-14 grid gap-8 border-t border-white/8 pt-10 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <div key={stat.label}>
+              <div className="font-display text-3xl font-bold text-[var(--color-gold)]">
+                {stat.value}
+              </div>
+              <div className="mt-1 text-xs text-[var(--color-muted)]">
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};

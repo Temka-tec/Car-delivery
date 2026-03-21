@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  DRIVER
+ 
+}
+
+enum DriverStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CarStatus {
+  AVAILABLE
+  BOOKED
+  OFFLINE
+  MAINTENANCE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum CompanyStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+model User {
+  id            String          @id @default(cuid())
+  clerkId       String          @unique
+  email         String          @unique
+  name          String?
+  phone         String?
+  role          Role            @default(USER)
+  driverProfile DriverProfile?
+  bookings      Booking[]
+  company       Company?        @relation(fields: [companyId], references: [id])
+  companyId     String?
+  createdAt     DateTime        @default(now())
+}
+
+model DriverProfile {
+  id            String       @id @default(cuid())
+  user          User         @relation(fields: [userId], references: [id])
+  userId        String       @unique
+  licenseNumber String
+  licenseClass  String
+  licenseExpiry DateTime
+  photoUrl      String?
+  licensePhotoF String?
+  licensePhotoB String?
+  selfiePhoto   String?
+  experience    String
+  status        DriverStatus @default(PENDING)
+  isOnline      Boolean      @default(false)
+  car           Car?
+  bookings      Booking[]
+  createdAt     DateTime     @default(now())
+}
+
+model Car {
+  id           String         @id @default(cuid())
+  make         String
+  model        String
+  year         Int
+  color        String?
+  plate        String         @unique
+  seats        Int
+  transmission String
+  status       CarStatus      @default(AVAILABLE)
+  dailyRate    Int
+  photos       String[]
+  features     String[]
+  driver       DriverProfile? @relation(fields: [driverId], references: [id])
+  driverId     String?        @unique
+  company      Company?       @relation(fields: [companyId], references: [id])
+  companyId    String?
+  bookings     Booking[]
+  createdAt    DateTime       @default(now())
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  user        User          @relation(fields: [userId], references: [id])
+  userId      String
+  car         Car           @relation(fields: [carId], references: [id])
+  carId       String
+  driver      DriverProfile @relation(fields: [driverId], references: [id])
+  driverId    String
+  startDate   DateTime
+  endDate     DateTime
+  startedAt   DateTime?
+  endedAt     DateTime?
+  destination String?
+  notes       String?
+  totalPrice  Int?
+  status      BookingStatus @default(PENDING)
+  review      Review?
+  createdAt   DateTime      @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  bookingId String   @unique
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model Company {
+  id        String        @id @default(cuid())
+  name      String
+  email     String        @unique
+  location  String
+  logoUrl   String?
+  status    CompanyStatus @default(PENDING)
+  cars      Car[]
+  admins    User[]
+  createdAt DateTime      @default(now())
+}
