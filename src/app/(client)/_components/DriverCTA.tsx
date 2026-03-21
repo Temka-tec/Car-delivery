@@ -51,9 +51,12 @@ export const DriverCTA = () => {
                   Нэвтрэх
                 </Link>
               ) : (
-                <span className="rounded-lg border border-[rgba(201,168,76,0.25)] px-5 py-3 text-sm text-[var(--color-muted)]">
-                  Та нэвтэрсэн байна
-                </span>
+                <Link
+                  href="/driver/dashboard"
+                  className="rounded-lg border border-[rgba(201,168,76,0.25)] px-5 py-3 text-sm text-[var(--color-muted)] transition hover:border-[rgba(201,168,76,0.4)] hover:text-[var(--color-text)]"
+                >
+                  Dashboard харах
+                </Link>
               )}
             </div>
           </div>

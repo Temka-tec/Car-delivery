@@ -10,18 +10,9 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks(.*)",
 ]);
 
-const isDriverRoute = createRouteMatcher(["/dashboard/driver(.*)"]);
-
 export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
     await auth.protect();
-  }
-
-  const { sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string } | undefined)?.role;
-
-  if (isDriverRoute(req) && role !== "driver") {
-    return Response.redirect(new URL("/", req.url));
   }
 });
 

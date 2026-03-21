@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { ChangeEvent, FormEvent } from "react";
 import { useState } from "react";
 
 import {
@@ -11,6 +13,31 @@ import {
 
 type StepId = 1 | 2 | 3;
 
+type DriverRegistrationValues = {
+  lastName: string;
+  firstName: string;
+  phone: string;
+  email: string;
+  registerNumber: string;
+  birthDate: string;
+  homeAddress: string;
+  licenseNumber: string;
+  licenseClass: string;
+  licenseIssuedAt: string;
+  licenseExpiry: string;
+  drivingExperience: string;
+  accidentHistory: string;
+  carMake: string;
+  carModel: string;
+  carYear: string;
+  carColor: string;
+  plateNumber: string;
+  seatCount: string;
+  transmission: string;
+  enginePower: string;
+  carNotes: string;
+};
+
 const stepTabs = [
   { id: 1 as StepId, label: "Хувийн мэдээлэл" },
   { id: 2 as StepId, label: "Баримт бичиг" },
@@ -20,12 +47,95 @@ const stepTabs = [
 const sectionTitleClasses =
   "grid grid-cols-[28px_1fr] items-center gap-3 border-b border-white/8 pb-2";
 
+const personalFieldNames: Record<string, string> = {
+  Овог: "lastName",
+  Нэр: "firstName",
+  "Утасны дугаар": "phone",
+  "И-мэйл хаяг": "email",
+  "Регистрийн дугаар": "registerNumber",
+  "Төрсөн огноо": "birthDate",
+};
+
+const initialFormValues: DriverRegistrationValues = {
+  lastName: "",
+  firstName: "",
+  phone: "",
+  email: "",
+  registerNumber: "",
+  birthDate: "",
+  homeAddress: "",
+  licenseNumber: "",
+  licenseClass: "",
+  licenseIssuedAt: "",
+  licenseExpiry: "",
+  drivingExperience: "",
+  accidentHistory: "Үгүй",
+  carMake: "",
+  carModel: "",
+  carYear: "",
+  carColor: "",
+  plateNumber: "",
+  seatCount: "4",
+  transmission: "Автомат",
+  enginePower: "",
+  carNotes: "",
+};
+
 export const DriverRegistrationForm = () => {
   const [activeStep, setActiveStep] = useState<StepId>(1);
+  const [formValues, setFormValues] =
+    useState<DriverRegistrationValues>(initialFormValues);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleFieldChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = event.target;
+
+    setFormValues((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (activeStep !== 3 || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const response = await fetch("/api/driver-applications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formValues),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        setSubmitError(message || "Хүсэлт илгээх үед алдаа гарлаа.");
+        return;
+      }
+
+      router.push("/driver/dashboard?submitted=1");
+    } catch {
+      setSubmitError("Хүсэлт илгээх үед алдаа гарлаа. Дахин оролдоно уу.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[var(--color-bg)] px-6 py-8 text-[var(--color-text)] sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-5xl">
+      <form onSubmit={handleSubmit} className="mx-auto max-w-5xl">
         <div className="mb-8 flex items-center justify-between gap-4">
           <Link
             href="/"
@@ -120,6 +230,7 @@ export const DriverRegistrationForm = () => {
         <div className="mb-8 flex gap-1 rounded-xl border border-white/8 bg-[var(--color-surface)] p-1">
           {stepTabs.map((tab) => (
             <button
+              type="button"
               key={tab.id}
               onClick={() => setActiveStep(tab.id)}
               className={`flex-1 rounded-lg px-4 py-2.5 text-sm transition ${
@@ -156,8 +267,15 @@ export const DriverRegistrationForm = () => {
                   ) : null}
                 </span>
                 <input
+                  name={personalFieldNames[field.label]}
                   type={field.type}
                   placeholder={field.placeholder}
+                  value={
+                    formValues[
+                      personalFieldNames[field.label] as keyof DriverRegistrationValues
+                    ]
+                  }
+                  onChange={handleFieldChange}
                   className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:bg-[#22222E]"
                 />
                 {field.hint ? (
@@ -171,8 +289,11 @@ export const DriverRegistrationForm = () => {
                 Гэрийн хаяг
               </span>
               <input
+                name="homeAddress"
                 type="text"
                 placeholder="Улаанбаатар, Сүхбаатар дүүрэг, 1-р хороо..."
+                value={formValues.homeAddress}
+                onChange={handleFieldChange}
                 className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:bg-[#22222E]"
               />
             </label>
@@ -186,7 +307,7 @@ export const DriverRegistrationForm = () => {
               </div>
             </div>
 
-            <button className="rounded-[16px] border border-dashed border-[rgba(201,168,76,0.25)] bg-[var(--color-panel)] px-6 py-10 text-center transition hover:border-[rgba(201,168,76,0.5)] hover:bg-[#22222E] md:col-span-2">
+            <button type="button" className="rounded-[16px] border border-dashed border-[rgba(201,168,76,0.25)] bg-[var(--color-panel)] px-6 py-10 text-center transition hover:border-[rgba(201,168,76,0.5)] hover:bg-[#22222E] md:col-span-2">
               <div className="text-3xl">🖼️</div>
               <div className="mt-3 text-sm font-medium">
                 Өөрийн зургийг оруулах
@@ -228,7 +349,10 @@ export const DriverRegistrationForm = () => {
                 Үнэмлэхийн дугаар <span className="text-[var(--color-gold)]">*</span>
               </span>
               <input
+                name="licenseNumber"
                 placeholder="MN-12345678"
+                value={formValues.licenseNumber}
+                onChange={handleFieldChange}
                 className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
               />
             </label>
@@ -236,8 +360,13 @@ export const DriverRegistrationForm = () => {
               <span className="text-xs font-medium text-[var(--color-muted)]">
                 Ангилал <span className="text-[var(--color-gold)]">*</span>
               </span>
-              <select className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none">
-                <option>Сонгох...</option>
+              <select
+                name="licenseClass"
+                value={formValues.licenseClass}
+                onChange={handleFieldChange}
+                className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+              >
+                <option value="">Сонгох...</option>
                 <option>B ангилал</option>
                 <option>C ангилал</option>
                 <option>D ангилал</option>
@@ -248,7 +377,10 @@ export const DriverRegistrationForm = () => {
                 Олгосон огноо <span className="text-[var(--color-gold)]">*</span>
               </span>
               <input
+                name="licenseIssuedAt"
                 type="date"
+                value={formValues.licenseIssuedAt}
+                onChange={handleFieldChange}
                 className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
               />
             </label>
@@ -257,7 +389,10 @@ export const DriverRegistrationForm = () => {
                 Дуусах огноо <span className="text-[var(--color-gold)]">*</span>
               </span>
               <input
+                name="licenseExpiry"
                 type="date"
+                value={formValues.licenseExpiry}
+                onChange={handleFieldChange}
                 className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
               />
             </label>
@@ -265,8 +400,13 @@ export const DriverRegistrationForm = () => {
               <span className="text-xs font-medium text-[var(--color-muted)]">
                 Жолоодсон жил <span className="text-[var(--color-gold)]">*</span>
               </span>
-              <select className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none">
-                <option>Сонгох...</option>
+              <select
+                name="drivingExperience"
+                value={formValues.drivingExperience}
+                onChange={handleFieldChange}
+                className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+              >
+                <option value="">Сонгох...</option>
                 <option>1-2 жил</option>
                 <option>3-5 жил</option>
                 <option>6-10 жил</option>
@@ -277,7 +417,12 @@ export const DriverRegistrationForm = () => {
               <span className="text-xs font-medium text-[var(--color-muted)]">
                 Осол гарч байсан уу?
               </span>
-              <select className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none">
+              <select
+                name="accidentHistory"
+                value={formValues.accidentHistory}
+                onChange={handleFieldChange}
+                className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+              >
                 <option>Үгүй</option>
                 <option>Тийм (тайлбарлана)</option>
               </select>
@@ -295,6 +440,7 @@ export const DriverRegistrationForm = () => {
             <div className="grid gap-3 md:col-span-2 md:grid-cols-3">
               {documentPhotoSlots.map((slot) => (
                 <button
+                  type="button"
                   key={slot.title}
                   className="rounded-[16px] border border-dashed border-[rgba(201,168,76,0.2)] bg-[var(--color-panel)] px-4 py-8 text-center transition hover:border-[rgba(201,168,76,0.45)] hover:bg-[#22222E]"
                 >
@@ -335,8 +481,13 @@ export const DriverRegistrationForm = () => {
               <span className="text-xs font-medium text-[var(--color-muted)]">
                 Машины марк <span className="text-[var(--color-gold)]">*</span>
               </span>
-              <select className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none">
-                <option>Сонгох...</option>
+              <select
+                name="carMake"
+                value={formValues.carMake}
+                onChange={handleFieldChange}
+                className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+              >
+                <option value="">Сонгох...</option>
                 <option>Toyota</option>
                 <option>Lexus</option>
                 <option>Hyundai</option>
@@ -352,7 +503,10 @@ export const DriverRegistrationForm = () => {
                 Загвар <span className="text-[var(--color-gold)]">*</span>
               </span>
               <input
+                name="carModel"
                 placeholder="Alphard, Hiace, Prius..."
+                value={formValues.carModel}
+                onChange={handleFieldChange}
                 className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
               />
             </label>
@@ -360,8 +514,13 @@ export const DriverRegistrationForm = () => {
               <span className="text-xs font-medium text-[var(--color-muted)]">
                 Он <span className="text-[var(--color-gold)]">*</span>
               </span>
-              <select className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none">
-                <option>Сонгох...</option>
+              <select
+                name="carYear"
+                value={formValues.carYear}
+                onChange={handleFieldChange}
+                className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+              >
+                <option value="">Сонгох...</option>
                 <option>2024</option>
                 <option>2023</option>
                 <option>2022</option>
@@ -377,7 +536,10 @@ export const DriverRegistrationForm = () => {
                 Өнгө
               </span>
               <input
+                name="carColor"
                 placeholder="Цагаан, Хар, Мөнгөлөг..."
+                value={formValues.carColor}
+                onChange={handleFieldChange}
                 className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
               />
             </label>
@@ -386,7 +548,10 @@ export const DriverRegistrationForm = () => {
                 Улсын дугаар <span className="text-[var(--color-gold)]">*</span>
               </span>
               <input
+                name="plateNumber"
                 placeholder="1234 УНА"
+                value={formValues.plateNumber}
+                onChange={handleFieldChange}
                 className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
               />
             </label>
@@ -394,7 +559,12 @@ export const DriverRegistrationForm = () => {
               <span className="text-xs font-medium text-[var(--color-muted)]">
                 Суудлын тоо <span className="text-[var(--color-gold)]">*</span>
               </span>
-              <select className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none">
+              <select
+                name="seatCount"
+                value={formValues.seatCount}
+                onChange={handleFieldChange}
+                className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+              >
                 <option>4</option>
                 <option>5</option>
                 <option>7</option>
@@ -406,7 +576,12 @@ export const DriverRegistrationForm = () => {
               <span className="text-xs font-medium text-[var(--color-muted)]">
                 Хурдны хайрцаг
               </span>
-              <select className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none">
+              <select
+                name="transmission"
+                value={formValues.transmission}
+                onChange={handleFieldChange}
+                className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+              >
                 <option>Автомат</option>
                 <option>Механик</option>
               </select>
@@ -416,7 +591,10 @@ export const DriverRegistrationForm = () => {
                 Хөдөлгүүрийн хүч
               </span>
               <input
+                name="enginePower"
                 placeholder="2.0L, 3.5L..."
+                value={formValues.enginePower}
+                onChange={handleFieldChange}
                 className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
               />
             </label>
@@ -433,6 +611,7 @@ export const DriverRegistrationForm = () => {
             <div className="grid gap-3 md:col-span-2 md:grid-cols-3">
               {carPhotoSlots.map((slot) => (
                 <button
+                  type="button"
                   key={slot.title}
                   className="rounded-[16px] border border-dashed border-[rgba(201,168,76,0.2)] bg-[var(--color-panel)] px-4 py-8 text-center transition hover:border-[rgba(201,168,76,0.45)] hover:bg-[#22222E]"
                 >
@@ -450,7 +629,10 @@ export const DriverRegistrationForm = () => {
                 Нэмэлт тайлбар
               </span>
               <textarea
+                name="carNotes"
                 placeholder="Машины онцлог, тоноглол, нэмэлт мэдээлэл..."
+                value={formValues.carNotes}
+                onChange={handleFieldChange}
                 className="min-h-24 rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
               />
             </label>
@@ -470,26 +652,47 @@ export const DriverRegistrationForm = () => {
 
         <div className="mt-10 flex flex-col gap-4 border-t border-white/8 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <button className="rounded-xl border border-white/8 px-6 py-3 text-sm text-[var(--color-muted)] transition hover:text-[var(--color-text)]">
+            <button
+              type="button"
+              onClick={() =>
+                setActiveStep((current) => {
+                  setSubmitError(null);
+                  return current === 1 ? 1 : ((current - 1) as StepId);
+                })
+              }
+              className="rounded-xl border border-white/8 px-6 py-3 text-sm text-[var(--color-muted)] transition hover:text-[var(--color-text)]"
+            >
               ← Буцах
             </button>
-            <button className="text-sm text-[var(--color-muted)] underline underline-offset-4 transition hover:text-[var(--color-gold)]">
+            <button type="button" className="text-sm text-[var(--color-muted)] underline underline-offset-4 transition hover:text-[var(--color-gold)]">
               Ноорог хадгалах
             </button>
           </div>
 
           <button
-            onClick={() =>
-              setActiveStep((current) =>
-                current === 3 ? 3 : ((current + 1) as StepId),
-              )
-            }
+            type={activeStep === 3 ? "submit" : "button"}
+            onClick={() => {
+              if (activeStep !== 3) {
+                setSubmitError(null);
+                setActiveStep((current) => ((current + 1) as StepId));
+              }
+            }}
+            disabled={isSubmitting}
             className="rounded-xl bg-[var(--color-gold)] px-8 py-3 text-sm font-medium text-[var(--color-ink)] transition hover:-translate-y-0.5 hover:bg-[var(--color-gold-light)]"
           >
-            {activeStep === 3 ? "Хүсэлт илгээх →" : "Дараагийн алхам →"}
+            {activeStep === 3
+              ? isSubmitting
+                ? "Илгээж байна..."
+                : "Хүсэлт илгээх →"
+              : "Дараагийн алхам →"}
           </button>
         </div>
-      </div>
+        {submitError ? (
+          <div className="mt-4 rounded-xl border border-[rgba(248,113,113,0.25)] bg-[rgba(248,113,113,0.08)] px-4 py-3 text-sm text-[#F87171]">
+            {submitError}
+          </div>
+        ) : null}
+      </form>
     </main>
   );
 };
