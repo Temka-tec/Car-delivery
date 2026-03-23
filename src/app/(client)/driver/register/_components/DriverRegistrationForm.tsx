@@ -38,6 +38,17 @@ type DriverRegistrationValues = {
   carNotes: string;
 };
 
+type UploadFieldName =
+  | "profilePhoto"
+  | "licenseFront"
+  | "licenseBack"
+  | "licenseSelfie"
+  | "carFront"
+  | "carBack"
+  | "carInterior";
+
+type UploadFiles = Record<UploadFieldName, File | null>;
+
 const stepTabs = [
   { id: 1 as StepId, label: "Хувийн мэдээлэл" },
   { id: 2 as StepId, label: "Баримт бичиг" },
@@ -81,10 +92,41 @@ const initialFormValues: DriverRegistrationValues = {
   carNotes: "",
 };
 
+const initialUploadFiles: UploadFiles = {
+  profilePhoto: null,
+  licenseFront: null,
+  licenseBack: null,
+  licenseSelfie: null,
+  carFront: null,
+  carBack: null,
+  carInterior: null,
+};
+
+const uploadFieldLabels: Record<UploadFieldName, string> = {
+  profilePhoto: "Профайл зураг",
+  licenseFront: "Үнэмлэхийн урд тал",
+  licenseBack: "Үнэмлэхийн ар тал",
+  licenseSelfie: "Selfie + үнэмлэх",
+  carFront: "Машины урд зураг",
+  carBack: "Машины ар зураг",
+  carInterior: "Машины дотор зураг",
+};
+
+const acceptedImageTypes = "image/jpeg,image/png,image/webp";
+
+const formatFileSize = (size: number) => {
+  if (size >= 1024 * 1024) {
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  return `${Math.max(1, Math.round(size / 1024))} KB`;
+};
+
 export const DriverRegistrationForm = () => {
   const [activeStep, setActiveStep] = useState<StepId>(1);
   const [formValues, setFormValues] =
     useState<DriverRegistrationValues>(initialFormValues);
+  const [uploadFiles, setUploadFiles] = useState<UploadFiles>(initialUploadFiles);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const router = useRouter();
@@ -100,6 +142,18 @@ export const DriverRegistrationForm = () => {
     }));
   };
 
+  const handleUploadChange = (
+    field: UploadFieldName,
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0] ?? null;
+
+    setUploadFiles((current) => ({
+      ...current,
+      [field]: file,
+    }));
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -111,12 +165,30 @@ export const DriverRegistrationForm = () => {
     setSubmitError(null);
 
     try {
+      const missingUpload = (Object.entries(uploadFiles) as Array<
+        [UploadFieldName, File | null]
+      >).find(([, file]) => !file);
+
+      if (missingUpload) {
+        setSubmitError(`${uploadFieldLabels[missingUpload[0]]} дутуу байна.`);
+        return;
+      }
+
+      const formData = new FormData();
+
+      for (const [key, value] of Object.entries(formValues)) {
+        formData.append(key, value);
+      }
+
+      for (const [key, file] of Object.entries(uploadFiles) as Array<
+        [UploadFieldName, File]
+      >) {
+        formData.append(key, file);
+      }
+
       const response = await fetch("/api/driver-applications", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formValues),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -307,18 +379,36 @@ export const DriverRegistrationForm = () => {
               </div>
             </div>
 
-            <button type="button" className="rounded-[16px] border border-dashed border-[rgba(201,168,76,0.25)] bg-[var(--color-panel)] px-6 py-10 text-center transition hover:border-[rgba(201,168,76,0.5)] hover:bg-[#22222E] md:col-span-2">
-              <div className="text-3xl">🖼️</div>
-              <div className="mt-3 text-sm font-medium">
-                Өөрийн зургийг оруулах
-              </div>
-              <div className="mt-1 text-xs text-[var(--color-muted)]">
-                JPG, PNG · Дээд тал 5MB · Нүүр тодорхой харагдах ёстой
-              </div>
-              <span className="mt-3 inline-block rounded-full border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.1)] px-3 py-1 text-[10px] text-[var(--color-gold)]">
-                Файл сонгох эсвэл чирж оруулах
-              </span>
-            </button>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="profilePhoto"
+                className="block cursor-pointer rounded-[16px] border border-dashed border-[rgba(201,168,76,0.25)] bg-[var(--color-panel)] px-6 py-10 text-center transition hover:border-[rgba(201,168,76,0.5)] hover:bg-[#22222E]"
+              >
+                <div className="text-3xl">
+                  {uploadFiles.profilePhoto ? "✅" : "🖼️"}
+                </div>
+                <div className="mt-3 text-sm font-medium">
+                  {uploadFiles.profilePhoto
+                    ? uploadFiles.profilePhoto.name
+                    : "Өөрийн зургийг оруулах"}
+                </div>
+                <div className="mt-1 text-xs text-[var(--color-muted)]">
+                  {uploadFiles.profilePhoto
+                    ? `${formatFileSize(uploadFiles.profilePhoto.size)} · Resend-ээр хамт илгээгдэнэ`
+                    : "JPG, PNG, WEBP · Дээд тал 5MB · Нүүр тодорхой харагдах ёстой"}
+                </div>
+                <span className="mt-3 inline-block rounded-full border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.1)] px-3 py-1 text-[10px] text-[var(--color-gold)]">
+                  {uploadFiles.profilePhoto ? "Өөр зураг сонгох" : "Файл сонгох"}
+                </span>
+              </label>
+              <input
+                id="profilePhoto"
+                type="file"
+                accept={acceptedImageTypes}
+                onChange={(event) => handleUploadChange("profilePhoto", event)}
+                className="sr-only"
+              />
+            </div>
 
             <div className="flex gap-3 rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.05)] p-4 text-sm md:col-span-2">
               <span>ℹ️</span>
@@ -439,17 +529,28 @@ export const DriverRegistrationForm = () => {
 
             <div className="grid gap-3 md:col-span-2 md:grid-cols-3">
               {documentPhotoSlots.map((slot) => (
-                <button
-                  type="button"
+                <label
+                  htmlFor={slot.id}
                   key={slot.title}
-                  className="rounded-[16px] border border-dashed border-[rgba(201,168,76,0.2)] bg-[var(--color-panel)] px-4 py-8 text-center transition hover:border-[rgba(201,168,76,0.45)] hover:bg-[#22222E]"
+                  className="cursor-pointer rounded-[16px] border border-dashed border-[rgba(201,168,76,0.2)] bg-[var(--color-panel)] px-4 py-8 text-center transition hover:border-[rgba(201,168,76,0.45)] hover:bg-[#22222E]"
                 >
-                  <div className="text-3xl">{slot.icon}</div>
+                  <div className="text-3xl">
+                    {uploadFiles[slot.id] ? "✅" : slot.icon}
+                  </div>
                   <div className="mt-2 text-sm font-medium">{slot.title}</div>
                   <div className="mt-1 text-[11px] text-[var(--color-muted)]">
-                    {slot.subtitle}
+                    {uploadFiles[slot.id]
+                      ? `${uploadFiles[slot.id]?.name} · ${formatFileSize(uploadFiles[slot.id]?.size ?? 0)}`
+                      : slot.subtitle}
                   </div>
-                </button>
+                  <input
+                    id={slot.id}
+                    type="file"
+                    accept={acceptedImageTypes}
+                    onChange={(event) => handleUploadChange(slot.id, event)}
+                    className="sr-only"
+                  />
+                </label>
               ))}
             </div>
 
@@ -610,17 +711,28 @@ export const DriverRegistrationForm = () => {
 
             <div className="grid gap-3 md:col-span-2 md:grid-cols-3">
               {carPhotoSlots.map((slot) => (
-                <button
-                  type="button"
+                <label
+                  htmlFor={slot.id}
                   key={slot.title}
-                  className="rounded-[16px] border border-dashed border-[rgba(201,168,76,0.2)] bg-[var(--color-panel)] px-4 py-8 text-center transition hover:border-[rgba(201,168,76,0.45)] hover:bg-[#22222E]"
+                  className="cursor-pointer rounded-[16px] border border-dashed border-[rgba(201,168,76,0.2)] bg-[var(--color-panel)] px-4 py-8 text-center transition hover:border-[rgba(201,168,76,0.45)] hover:bg-[#22222E]"
                 >
-                  <div className="text-3xl">{slot.icon}</div>
+                  <div className="text-3xl">
+                    {uploadFiles[slot.id] ? "✅" : slot.icon}
+                  </div>
                   <div className="mt-2 text-sm font-medium">{slot.title}</div>
                   <div className="mt-1 text-[11px] text-[var(--color-muted)]">
-                    {slot.subtitle}
+                    {uploadFiles[slot.id]
+                      ? `${uploadFiles[slot.id]?.name} · ${formatFileSize(uploadFiles[slot.id]?.size ?? 0)}`
+                      : slot.subtitle}
                   </div>
-                </button>
+                  <input
+                    id={slot.id}
+                    type="file"
+                    accept={acceptedImageTypes}
+                    onChange={(event) => handleUploadChange(slot.id, event)}
+                    className="sr-only"
+                  />
+                </label>
               ))}
             </div>
 

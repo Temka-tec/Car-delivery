@@ -199,7 +199,7 @@ export const BookingExperience = () => {
                 return (
                   <article
                     key={car.id}
-                    className={`grid overflow-hidden rounded-2xl border bg-[var(--color-panel)] transition hover:-translate-y-0.5 hover:border-[rgba(201,168,76,0.25)] xl:grid-cols-[200px_1fr_140px] ${
+                    className={`grid items-start overflow-hidden rounded-2xl border bg-[var(--color-panel)] transition hover:-translate-y-0.5 hover:border-[rgba(201,168,76,0.25)] xl:grid-cols-[200px_1fr_140px] ${
                       isSelected
                         ? "border-[var(--color-gold)] bg-[rgba(201,168,76,0.04)]"
                         : "border-white/8"

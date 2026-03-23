@@ -51,13 +51,33 @@ export const personalFields = [
 ] as const;
 
 export const documentPhotoSlots = [
-  { icon: "📋", title: "Урд тал", subtitle: "Тодорхой, бүтэн" },
-  { icon: "🔄", title: "Ар тал", subtitle: "Тодорхой, бүтэн" },
-  { icon: "🤳", title: "Selfie + үнэмлэх", subtitle: "Нэгэн зэрэг" },
+  {
+    id: "licenseFront",
+    icon: "📋",
+    title: "Урд тал",
+    subtitle: "Тодорхой, бүтэн",
+  },
+  {
+    id: "licenseBack",
+    icon: "🔄",
+    title: "Ар тал",
+    subtitle: "Тодорхой, бүтэн",
+  },
+  {
+    id: "licenseSelfie",
+    icon: "🤳",
+    title: "Selfie + үнэмлэх",
+    subtitle: "Нэгэн зэрэг",
+  },
 ] as const;
 
 export const carPhotoSlots = [
-  { icon: "🚗", title: "Урд тал", subtitle: "Гаднаас" },
-  { icon: "🔙", title: "Ар тал", subtitle: "Дугаар харагдах" },
-  { icon: "🛋️", title: "Дотор тал", subtitle: "Сандал, хүрд" },
+  { id: "carFront", icon: "🚗", title: "Урд тал", subtitle: "Гаднаас" },
+  { id: "carBack", icon: "🔙", title: "Ар тал", subtitle: "Дугаар харагдах" },
+  {
+    id: "carInterior",
+    icon: "🛋️",
+    title: "Дотор тал",
+    subtitle: "Сандал, хүрд",
+  },
 ] as const;

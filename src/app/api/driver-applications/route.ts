@@ -33,6 +33,37 @@ const fieldLabels: Record<string, string> = {
   carNotes: "Нэмэлт тайлбар",
 };
 
+const uploadFieldLabels = {
+  profilePhoto: "Профайл зураг",
+  licenseFront: "Үнэмлэхийн урд тал",
+  licenseBack: "Үнэмлэхийн ар тал",
+  licenseSelfie: "Selfie + үнэмлэх",
+  carFront: "Машины урд зураг",
+  carBack: "Машины ар зураг",
+  carInterior: "Машины дотор зураг",
+} as const;
+
+const maxUploadSize = 5 * 1024 * 1024;
+
+const escapeHtml = (value: string) =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
+const getTextValue = (value: FormDataEntryValue | null) =>
+  typeof value === "string" ? value.trim() : "";
+
+const formatBytes = (value: number) => {
+  if (value >= 1024 * 1024) {
+    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  return `${Math.max(1, Math.round(value / 1024))} KB`;
+};
+
 export async function POST(req: Request) {
   const { userId } = await auth();
 
@@ -45,7 +76,10 @@ export async function POST(req: Request) {
   }
 
   const user = await currentUser();
-  const body = (await req.json()) as Record<string, string>;
+  const formData = await req.formData();
+  const body = Object.fromEntries(
+    Object.keys(fieldLabels).map((key) => [key, getTextValue(formData.get(key))]),
+  ) as Record<string, string>;
 
   const requiredFields = [
     "lastName",
@@ -70,16 +104,71 @@ export async function POST(req: Request) {
     }
   }
 
+  let attachmentEntries: Array<{
+    label: string;
+    originalName: string;
+    size: number;
+    attachment: {
+      filename: string;
+      content: Buffer;
+      contentType: string;
+    };
+  }>;
+
+  try {
+    attachmentEntries = await Promise.all(
+      Object.entries(uploadFieldLabels).map(async ([field, label]) => {
+        const file = formData.get(field);
+
+        if (!(file instanceof File) || file.size === 0) {
+          throw new Error(`${label} дутуу байна.`);
+        }
+
+        if (!file.type.startsWith("image/")) {
+          throw new Error(`${label} зөвхөн зураг файл байх ёстой.`);
+        }
+
+        if (file.size > maxUploadSize) {
+          throw new Error(`${label} 5MB-аас ихгүй байх ёстой.`);
+        }
+
+        return {
+          label,
+          originalName: file.name,
+          size: file.size,
+          attachment: {
+            filename: file.name,
+            content: Buffer.from(await file.arrayBuffer()),
+            contentType: file.type,
+          },
+        };
+      }),
+    );
+  } catch (error) {
+    return new Response(
+      error instanceof Error ? error.message : "Зураг шалгах үед алдаа гарлаа.",
+      { status: 400 },
+    );
+  }
+
   const resend = new Resend(resendApiKey);
   const rows = Object.entries(fieldLabels)
     .map(([key, label]) => {
-      const value = body[key]?.toString().trim() || "—";
+      const value = escapeHtml(body[key]?.toString().trim() || "—");
 
       return `<tr>
-        <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;">${label}</td>
+        <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;">${escapeHtml(label)}</td>
         <td style="padding:8px 10px;border:1px solid #e5e7eb;">${value}</td>
       </tr>`;
     })
+    .join("");
+  const attachmentRows = attachmentEntries
+    .map(
+      ({ label, originalName, size }) => `<tr>
+        <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;">${escapeHtml(label)}</td>
+        <td style="padding:8px 10px;border:1px solid #e5e7eb;">${escapeHtml(originalName)} (${formatBytes(size)})</td>
+      </tr>`,
+    )
     .join("");
 
   const clerkName =
@@ -88,42 +177,62 @@ export async function POST(req: Request) {
     user?.primaryEmailAddress?.emailAddress || body.email || "Unknown";
   const applicantEmail = body.email?.toString().trim() || clerkEmail;
 
-  await Promise.all([
-    resend.emails.send({
-      from: fromEmail,
-      to: recipientEmail,
-      replyTo: applicantEmail,
-      subject: `Шинэ жолоочийн хүсэлт: ${body.firstName} ${body.lastName}`,
-      html: `
-        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
-          <h2 style="margin-bottom:8px;">Шинэ жолоочийн хүсэлт ирлээ</h2>
-          <p style="margin:0 0 16px;">Clerk хэрэглэгч: <strong>${clerkName}</strong> (${clerkEmail})</p>
-          <table style="border-collapse:collapse;width:100%;max-width:760px">
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      `,
-    }),
-    resend.emails.send({
-      from: fromEmail,
-      to: applicantEmail,
-      subject: "Таны жолоочийн хүсэлт амжилттай илгээгдлээ",
-      html: `
-        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
-          <h2 style="margin-bottom:8px;">Хүсэлт хүлээн авлаа</h2>
-          <p style="margin:0 0 12px;">
-            Сайн байна уу, <strong>${body.firstName} ${body.lastName}</strong>.
-          </p>
-          <p style="margin:0 0 16px;">
-            Таны жолоочийн хүсэлтийг амжилттай хүлээн авлаа. Бид 1-2 ажлын өдрийн дотор шалгаад эргээд холбогдоно.
-          </p>
-          <table style="border-collapse:collapse;width:100%;max-width:760px">
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      `,
-    }),
-  ]);
+  try {
+    await Promise.all([
+      resend.emails.send({
+        from: fromEmail,
+        to: recipientEmail,
+        replyTo: applicantEmail,
+        subject: `Шинэ жолоочийн хүсэлт: ${body.firstName} ${body.lastName}`,
+        attachments: attachmentEntries.map(({ attachment }) => attachment),
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
+            <h2 style="margin-bottom:8px;">Шинэ жолоочийн хүсэлт ирлээ</h2>
+            <p style="margin:0 0 16px;">Clerk хэрэглэгч: <strong>${escapeHtml(clerkName)}</strong> (${escapeHtml(clerkEmail)})</p>
+            <table style="border-collapse:collapse;width:100%;max-width:760px">
+              <tbody>${rows}</tbody>
+            </table>
+            <h3 style="margin:20px 0 8px;">Хавсаргасан зургууд</h3>
+            <table style="border-collapse:collapse;width:100%;max-width:760px">
+              <tbody>${attachmentRows}</tbody>
+            </table>
+          </div>
+        `,
+      }),
+      resend.emails.send({
+        from: fromEmail,
+        to: applicantEmail,
+        subject: "Таны жолоочийн хүсэлт амжилттай илгээгдлээ",
+        attachments: attachmentEntries.map(({ attachment }) => attachment),
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
+            <h2 style="margin-bottom:8px;">Хүсэлт хүлээн авлаа</h2>
+            <p style="margin:0 0 12px;">
+              Сайн байна уу, <strong>${escapeHtml(body.firstName)} ${escapeHtml(body.lastName)}</strong>.
+            </p>
+            <p style="margin:0 0 16px;">
+              Таны жолоочийн хүсэлтийг амжилттай хүлээн авлаа. Бид 1-2 ажлын өдрийн дотор шалгаад эргээд холбогдоно.
+            </p>
+            <table style="border-collapse:collapse;width:100%;max-width:760px">
+              <tbody>${rows}</tbody>
+            </table>
+            <p style="margin:16px 0 8px;">Дараах зургууд таны хүсэлттэй хамт илгээгдлээ:</p>
+            <table style="border-collapse:collapse;width:100%;max-width:760px">
+              <tbody>${attachmentRows}</tbody>
+            </table>
+          </div>
+        `,
+      }),
+    ]);
+  } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
+
+    return new Response("Resend рүү хүсэлт илгээх үед алдаа гарлаа.", {
+      status: 500,
+    });
+  }
 
   return Response.json({ success: true });
 }
