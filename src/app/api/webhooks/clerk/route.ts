@@ -1,73 +1,66 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
-import { prisma } from "@/lib/prisma";
+import { connectDB } from "@/lib/mongoose";
+import { User } from "@/models/User";
 
 export async function POST(req: Request) {
-  const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
+  const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
-  if (!webhookSecret) {
-    return new Response("Missing CLERK_WEBHOOK_SECRET", { status: 500 });
+  if (!WEBHOOK_SECRET) {
+    return new Response("Webhook secret байхгүй", { status: 500 });
   }
 
   const headerPayload = await headers();
   const svix_id = headerPayload.get("svix-id");
-  const svix_ts = headerPayload.get("svix-timestamp");
-  const svix_sig = headerPayload.get("svix-signature");
+  const svix_timestamp = headerPayload.get("svix-timestamp");
+  const svix_signature = headerPayload.get("svix-signature");
 
-  if (!svix_id || !svix_ts || !svix_sig) {
-    return new Response("Missing Svix headers", { status: 400 });
+  if (!svix_id || !svix_timestamp || !svix_signature) {
+    return new Response("Svix header байхгүй", { status: 400 });
   }
 
   const body = await req.text();
-  const wh = new Webhook(webhookSecret);
 
-  let evt: {
-    type: string;
-    data: {
-      id: string;
-      first_name?: string | null;
-      last_name?: string | null;
-      email_addresses?: Array<{ email_address: string }>;
-    };
-  };
+  const wh = new Webhook(WEBHOOK_SECRET);
+  let evt: any;
 
   try {
     evt = wh.verify(body, {
       "svix-id": svix_id,
-      "svix-timestamp": svix_ts,
-      "svix-signature": svix_sig,
-    }) as typeof evt;
-  } catch {
-    return new Response("Invalid webhook signature", { status: 400 });
+      "svix-timestamp": svix_timestamp,
+      "svix-signature": svix_signature,
+    });
+  } catch (err) {
+    return new Response("Webhook баталгаажуулалт амжилтгүй", { status: 400 });
   }
 
+  // Хэрэглэгч бүртгүүлэхэд DB-д хадгалах
   if (evt.type === "user.created") {
-    const primaryEmail = evt.data.email_addresses?.[0]?.email_address;
-
-    if (!primaryEmail) {
-      return new Response("Missing user email", { status: 400 });
-    }
-
-    await prisma.user.upsert({
-      where: {
-        clerkId: evt.data.id,
-      },
-      create: {
-        clerkId: evt.data.id,
-        email: primaryEmail,
-        name: [evt.data.first_name, evt.data.last_name]
-          .filter(Boolean)
-          .join(" ")
-          .trim() || null,
-      },
-      update: {
-        email: primaryEmail,
-        name: [evt.data.first_name, evt.data.last_name]
-          .filter(Boolean)
-          .join(" ")
-          .trim() || null,
-      },
+    await connectDB();
+    await User.create({
+      clerkId: evt.data.id,
+      email: evt.data.email_addresses[0].email_address,
+      name: `${evt.data.first_name ?? ""} ${evt.data.last_name ?? ""}`.trim(),
+      phone: evt.data.phone_numbers?.[0]?.phone_number ?? null,
     });
+  }
+
+  // Хэрэглэгч мэдээлэл шинэчлэхэд
+  if (evt.type === "user.updated") {
+    await connectDB();
+    await User.findOneAndUpdate(
+      { clerkId: evt.data.id },
+      {
+        email: evt.data.email_addresses[0].email_address,
+        name: `${evt.data.first_name ?? ""} ${evt.data.last_name ?? ""}`.trim(),
+      },
+    );
+  }
+
+  // Хэрэглэгч устгагдахад
+  if (evt.type === "user.deleted") {
+    await connectDB();
+    await User.findOneAndDelete({ clerkId: evt.data.id });
   }
 
   return new Response("OK", { status: 200 });
