@@ -179,7 +179,9 @@ export const BookingExperience = () => {
           <div className="p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-[var(--color-muted)]">
-                <strong className="font-medium text-[var(--color-text)]">18</strong>{" "}
+                <strong className="font-medium text-[var(--color-text)]">
+                  {bookingCars.length}
+                </strong>{" "}
                 машин олдлоо · 3 хоног
               </p>
               <select className="w-fit rounded-lg border border-white/8 bg-[var(--color-panel)] px-3 py-2 text-xs text-[var(--color-muted)] outline-none">

@@ -1,3 +1,5 @@
+import { cars } from "../../_components/landing-data";
+
 export const searchDefaults = {
   startDate: "2026-03-25",
   endDate: "2026-03-28",
@@ -43,62 +45,22 @@ export const filterGroups = [
   },
 ] as const;
 
-export const bookingCars = [
-  {
-    id: "alphard",
-    icon: "🚙",
-    name: "Toyota Alphard",
-    year: "2022",
-    meta: "Цагаан · Автомат · 3.5L · 7 суудал",
-    features: ["🛡️ Даатгалтай", "📍 GPS", "❄️ Кондиционер", "🎵 Premium audio"],
-    driver: {
-      initial: "Б",
-      name: "Болд Батаа",
-      stats: "4.9★ · 120 аялал",
-    },
-    rating: "4.9",
-    ratingCount: "48",
-    price: 180000,
-    badge: "● Сул",
-    selected: true,
-    premium: false,
+export const bookingCars = cars.map((car, index) => ({
+  id: car.slug,
+  icon: car.icon,
+  name: car.name,
+  year: car.year,
+  meta: `${car.color} · ${car.transmission} · ${car.engine} · ${car.features[0]?.value ?? car.tags[0]}`,
+  features: car.features.slice(0, 4).map((feature) => `${feature.icon} ${feature.value}`),
+  driver: {
+    initial: car.driver.initial,
+    name: car.driver.name,
+    stats: `${car.driver.rating} · ${car.driver.trips} аялал`,
   },
-  {
-    id: "hiace",
-    icon: "🚐",
-    name: "Toyota Hiace",
-    year: "2021",
-    meta: "Мөнгөлөг · Автомат · 2.8L · 10 суудал",
-    features: ["🛡️ Даатгалтай", "4WD", "❄️ Кондиционер"],
-    driver: {
-      initial: "О",
-      name: "Очирбат Г",
-      stats: "4.7★ · 85 аялал",
-    },
-    rating: "4.7",
-    ratingCount: "31",
-    price: 220000,
-    badge: "● Сул",
-    selected: false,
-    premium: false,
-  },
-  {
-    id: "lx570",
-    icon: "🏎️",
-    name: "Lexus LX570",
-    year: "2023",
-    meta: "Хар · Автомат · 5.7L · 5 суудал",
-    features: ["🛡️ Даатгалтай", "📍 GPS", "4WD", "🍷 Luxury"],
-    driver: {
-      initial: "Д",
-      name: "Дорж Нямаа",
-      stats: "5.0★ · 200 аялал",
-    },
-    rating: "5.0",
-    ratingCount: "89",
-    price: 350000,
-    badge: "● Premium",
-    selected: false,
-    premium: true,
-  },
-] as const;
+  rating: car.rating.toFixed(1),
+  ratingCount: String(car.reviewCount),
+  price: car.priceValue,
+  badge: car.badge === "Сул" ? "● Сул" : `● ${car.badge}`,
+  selected: index === 0,
+  premium: car.badge !== "Сул",
+})) as const;

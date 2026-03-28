@@ -20,7 +20,7 @@ export const FleetSection = () => {
             Сул байгаа <span className="text-[var(--color-gold)]">машинууд</span>
           </div>
           <a
-            href="#cars"
+            href="/booking"
             className="w-fit border-b border-[rgba(201,168,76,0.3)] pb-0.5 text-sm text-[var(--color-gold)]"
           >
             Бүгдийг харах

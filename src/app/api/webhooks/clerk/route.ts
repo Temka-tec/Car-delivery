@@ -1,7 +1,5 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
-import { connectDB } from "@/lib/mongoose";
-import { User } from "@/models/User";
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -22,45 +20,15 @@ export async function POST(req: Request) {
   const body = await req.text();
 
   const wh = new Webhook(WEBHOOK_SECRET);
-  let evt: any;
 
   try {
-    evt = wh.verify(body, {
+    wh.verify(body, {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
     });
-  } catch (err) {
+  } catch {
     return new Response("Webhook баталгаажуулалт амжилтгүй", { status: 400 });
-  }
-
-  // Хэрэглэгч бүртгүүлэхэд DB-д хадгалах
-  if (evt.type === "user.created") {
-    await connectDB();
-    await User.create({
-      clerkId: evt.data.id,
-      email: evt.data.email_addresses[0].email_address,
-      name: `${evt.data.first_name ?? ""} ${evt.data.last_name ?? ""}`.trim(),
-      phone: evt.data.phone_numbers?.[0]?.phone_number ?? null,
-    });
-  }
-
-  // Хэрэглэгч мэдээлэл шинэчлэхэд
-  if (evt.type === "user.updated") {
-    await connectDB();
-    await User.findOneAndUpdate(
-      { clerkId: evt.data.id },
-      {
-        email: evt.data.email_addresses[0].email_address,
-        name: `${evt.data.first_name ?? ""} ${evt.data.last_name ?? ""}`.trim(),
-      },
-    );
-  }
-
-  // Хэрэглэгч устгагдахад
-  if (evt.type === "user.deleted") {
-    await connectDB();
-    await User.findOneAndDelete({ clerkId: evt.data.id });
   }
 
   return new Response("OK", { status: 200 });

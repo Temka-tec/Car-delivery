@@ -1,4 +1,3 @@
-import { DriverCTA } from "./_components/DriverCTA";
 import { FleetSection } from "./_components/FleetSection";
 import { Footer } from "./_components/Footer";
 import { Header } from "./_components/Header";
@@ -11,8 +10,6 @@ export default function Home() {
       <HeroSection />
 
       <FleetSection />
-
-      <DriverCTA />
       <Footer />
     </main>
   );
