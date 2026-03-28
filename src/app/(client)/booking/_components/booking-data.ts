@@ -1,5 +1,3 @@
-import { cars } from "../../_components/landing-data";
-
 export const searchDefaults = {
   startDate: "2026-03-25",
   endDate: "2026-03-28",
@@ -44,23 +42,3 @@ export const filterGroups = [
     ],
   },
 ] as const;
-
-export const bookingCars = cars.map((car, index) => ({
-  id: car.slug,
-  icon: car.icon,
-  name: car.name,
-  year: car.year,
-  meta: `${car.color} · ${car.transmission} · ${car.engine} · ${car.features[0]?.value ?? car.tags[0]}`,
-  features: car.features.slice(0, 4).map((feature) => `${feature.icon} ${feature.value}`),
-  driver: {
-    initial: car.driver.initial,
-    name: car.driver.name,
-    stats: `${car.driver.rating} · ${car.driver.trips} аялал`,
-  },
-  rating: car.rating.toFixed(1),
-  ratingCount: String(car.reviewCount),
-  price: car.priceValue,
-  badge: car.badge === "Сул" ? "● Сул" : `● ${car.badge}`,
-  selected: index === 0,
-  premium: car.badge !== "Сул",
-})) as const;

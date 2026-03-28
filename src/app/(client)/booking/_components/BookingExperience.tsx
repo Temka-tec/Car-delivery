@@ -2,25 +2,70 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { CarListItem } from "@/lib/car-data";
 
-import {
-  bookingCars,
-  filterGroups,
-  searchDefaults,
-} from "./booking-data";
+import { filterGroups, searchDefaults } from "./booking-data";
 
-type BookingCar = (typeof bookingCars)[number];
+type BookingCar = CarListItem & {
+  selected: boolean;
+  premium: boolean;
+  meta: string;
+  features: string[];
+  driver: CarListItem["driver"] & { stats: string };
+  price: number;
+  ratingCount: string;
+};
 
 const formatPrice = (value: number) => `₮${value.toLocaleString()}`;
 
-export const BookingExperience = () => {
+const mapBookingCars = (cars: CarListItem[]): BookingCar[] =>
+  cars.map((car, index) => ({
+    ...car,
+    meta: `${car.color} · ${car.transmission} · ${car.engine} · ${car.tags[0] ?? "Мэдээлэлгүй"}`,
+    features: car.tags.map((tag) => `• ${tag}`),
+    driver: {
+      ...car.driver,
+      stats: `${car.driver.rating} · ${car.driver.trips} аялал`,
+    },
+    price: car.priceValue,
+    ratingCount: String(car.reviewCount),
+    selected: index === 0,
+    premium: car.badge !== "Сул",
+  }));
+
+export const BookingExperience = ({
+  initialCars,
+}: {
+  initialCars: CarListItem[];
+}) => {
+  const bookingCars = mapBookingCars(initialCars);
   const [selectedCar, setSelectedCar] = useState<BookingCar | null>(null);
   const [priceMax, setPriceMax] = useState(searchDefaults.priceMax);
   const [modalStart, setModalStart] = useState(searchDefaults.startDate);
   const [modalEnd, setModalEnd] = useState(searchDefaults.endDate);
   const [success, setSuccess] = useState(false);
 
-  const activeCar = selectedCar ?? bookingCars[0];
+  const activeCar = selectedCar ?? bookingCars[0] ?? null;
+
+  if (!activeCar) {
+    return (
+      <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+        <div className="mx-auto max-w-5xl px-6 py-16 text-center">
+          <h1 className="font-display text-3xl font-bold">Сул машин алга</h1>
+          <p className="mt-3 text-sm text-[var(--color-muted)]">
+            Одоогоор захиалах боломжтой машин бүртгэгдээгүй байна.
+          </p>
+          <Link
+            href="/"
+            className="mt-6 inline-flex rounded-xl bg-[var(--color-gold)] px-5 py-3 text-sm font-medium text-[var(--color-ink)]"
+          >
+            Нүүр хуудас руу буцах
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   const startDate = new Date(modalStart);
   const endDate = new Date(modalEnd);
   const diffDays = Math.round(

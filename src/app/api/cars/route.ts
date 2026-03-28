@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server";
+import { getAvailableCars } from "@/lib/car-data";
 
 export async function GET() {
-  return NextResponse.json(
-    {
-      error: "MongoDB setup removed. This endpoint is currently unavailable.",
-    },
-    { status: 503 },
-  );
+  const cars = await getAvailableCars();
+  return NextResponse.json(cars);
 }
 
 export async function POST() {
   return NextResponse.json(
     {
-      error: "MongoDB setup removed. This endpoint is currently unavailable.",
+      error: "Энэ endpoint одоогоор унших зориулалттай байна.",
     },
-    { status: 503 },
+    { status: 405 },
   );
 }

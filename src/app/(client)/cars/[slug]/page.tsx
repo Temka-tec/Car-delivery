@@ -1,13 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
-import { cars, getCarBySlug } from "../../_components/landing-data";
+import { getCarDetailsBySlug } from "@/lib/car-data";
 
 const formatPrice = (value: number) => `₮${value.toLocaleString()}`;
-
-export async function generateStaticParams() {
-  return cars.map((car) => ({ slug: car.slug }));
-}
 
 export default async function CarDetailsPage({
   params,
@@ -15,13 +10,12 @@ export default async function CarDetailsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const car = getCarBySlug(slug);
+  const car = await getCarDetailsBySlug(slug);
 
   if (!car) {
     notFound();
   }
 
-  const primaryDestination = car.destinations[0];
   const serviceFee = Math.round(car.priceValue * 0.05);
   const total = car.priceValue + serviceFee;
 
@@ -143,15 +137,25 @@ export default async function CarDetailsPage({
 
             <div className="mt-8 rounded-[24px] border border-white/8 bg-[var(--color-surface)] p-5">
               <div className="mb-4 text-sm font-semibold text-[var(--color-text)]">
-                Алдартай чиглэлүүд
+                Машины ерөнхий мэдээлэл
               </div>
-              <div className="flex flex-wrap gap-2">
-                {car.destinations.map((destination) => (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  { label: "Байршил", value: car.location },
+                  { label: "Даатгал", value: car.insurance },
+                  { label: "Хөдөлгүүр", value: car.engine },
+                  { label: "Өдрийн үнэ", value: formatPrice(car.priceValue) },
+                ].map((item) => (
                   <div
-                    key={`${car.slug}-${destination.name}`}
-                    className="rounded-full border border-white/8 bg-[var(--color-panel)] px-4 py-2 text-sm text-[var(--color-muted)]"
+                    key={item.label}
+                    className="rounded-2xl border border-white/8 bg-[var(--color-panel)] px-4 py-3"
                   >
-                    {destination.name} · {destination.distanceKm} км
+                    <div className="text-xs text-[var(--color-muted)]">
+                      {item.label}
+                    </div>
+                    <div className="mt-1 text-sm font-medium text-[var(--color-text)]">
+                      {item.value}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -162,6 +166,11 @@ export default async function CarDetailsPage({
                 Үнэлгээ, сэтгэгдэл
               </div>
               <div className="space-y-4">
+                {car.reviews.length === 0 ? (
+                  <div className="rounded-2xl border border-white/8 bg-[var(--color-panel)] p-4 text-sm text-[var(--color-muted)]">
+                    Одоогоор энэ машинд сэтгэгдэл бүртгэгдээгүй байна.
+                  </div>
+                ) : null}
                 {car.reviews.map((review) => (
                   <div
                     key={`${car.slug}-${review.name}-${review.date}`}
@@ -208,10 +217,10 @@ export default async function CarDetailsPage({
             <div className="space-y-4 p-5">
               <div className="rounded-2xl border border-[rgba(96,165,250,0.22)] bg-[rgba(96,165,250,0.08)] p-4 text-sm leading-6 text-[var(--color-muted)]">
                 <div className="mb-1 font-medium text-[#60A5FA]">
-                  {primaryDestination.name} · {primaryDestination.distanceKm} км
+                  {car.location}
                 </div>
-                Энэ чиглэлд ойролцоогоор {primaryDestination.days} аялал төлөвлөхөд
-                тохиромжтой.
+                Энэ машин одоогоор {car.badge.toLowerCase()} төлөвтэй бөгөөд
+                жолоочийн мэдээлэл, үнэлгээ, өдрийн үнийн хамт шууд харагдана.
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
@@ -236,7 +245,7 @@ export default async function CarDetailsPage({
               <label className="flex flex-col gap-1.5 text-sm text-[var(--color-muted)]">
                 Чиглэл
                 <input
-                  defaultValue={primaryDestination.name}
+                  defaultValue={car.location}
                   type="text"
                   className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-[var(--color-text)] outline-none"
                 />

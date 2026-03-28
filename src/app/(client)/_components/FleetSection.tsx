@@ -1,16 +1,14 @@
-"use client";
-
-import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-
-import { cars } from "./landing-data";
+import { auth } from "@clerk/nextjs/server";
+import { getAvailableCars } from "@/lib/car-data";
 
 const iconShellClasses =
   "flex h-36 items-center justify-center bg-[linear-gradient(135deg,#1A1A26,#22222E)]";
 
-export const FleetSection = () => {
-  const { isLoaded, userId } = useAuth();
-  const isSignedIn = isLoaded && Boolean(userId);
+export const FleetSection = async () => {
+  const { userId } = await auth();
+  const isSignedIn = Boolean(userId);
+  const cars = await getAvailableCars(6);
 
   return (
     <section id="cars" className="px-6 py-14 lg:px-10">
@@ -28,6 +26,11 @@ export const FleetSection = () => {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {cars.length === 0 ? (
+            <div className="rounded-[20px] border border-white/8 bg-[var(--color-surface)] p-8 text-sm text-[var(--color-muted)] md:col-span-2 xl:col-span-3">
+              Одоогоор сул машин бүртгэгдээгүй байна.
+            </div>
+          ) : null}
           {cars.map((car) => (
             <article
               key={car.name}
@@ -96,7 +99,7 @@ export const FleetSection = () => {
                 </div>
               </div>
             </article>
-          ))}
+          ))} 
         </div>
       </div>
     </section>

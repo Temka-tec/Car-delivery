@@ -1,5 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { Prisma } from "@/generated/prisma/client";
 import { Resend } from "resend";
+import { prisma } from "@/lib/prisma";
 
 const recipientEmail =
   process.env.DRIVER_APPLICATION_TO_EMAIL || "tematekoo198@gmail.com";
@@ -30,6 +32,7 @@ const fieldLabels: Record<string, string> = {
   seatCount: "Суудлын тоо",
   transmission: "Хурдны хайрцаг",
   enginePower: "Хөдөлгүүрийн хүч",
+  dailyRate: "Өдрийн үнэ",
   carNotes: "Нэмэлт тайлбар",
 };
 
@@ -64,6 +67,10 @@ const formatBytes = (value: number) => {
   return `${Math.max(1, Math.round(value / 1024))} KB`;
 };
 
+const isMissingTableError = (error: unknown) =>
+  error instanceof Prisma.PrismaClientKnownRequestError &&
+  error.code === "P2021";
+
 export async function POST(req: Request) {
   const { userId } = await auth();
 
@@ -94,6 +101,7 @@ export async function POST(req: Request) {
     "carModel",
     "carYear",
     "plateNumber",
+    "dailyRate",
   ];
 
   for (const field of requiredFields) {
@@ -102,6 +110,12 @@ export async function POST(req: Request) {
         status: 400,
       });
     }
+  }
+
+  if (!/^\d+$/.test(body.dailyRate) || Number(body.dailyRate) <= 0) {
+    return new Response("Өдрийн үнэ зөв тоо байх ёстой.", {
+      status: 400,
+    });
   }
 
   let attachmentEntries: Array<{
@@ -176,6 +190,82 @@ export async function POST(req: Request) {
   const clerkEmail =
     user?.primaryEmailAddress?.emailAddress || body.email || "Unknown";
   const applicantEmail = body.email?.toString().trim() || clerkEmail;
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        clerkId: userId,
+      },
+    });
+
+    await prisma.driverApplication.create({
+      data: {
+        userId: existingUser?.id,
+        clerkId: userId,
+        lastName: body.lastName,
+        firstName: body.firstName,
+        phone: body.phone,
+        email: body.email,
+        registerNumber: body.registerNumber,
+        birthDate: body.birthDate ? new Date(body.birthDate) : null,
+        homeAddress: body.homeAddress || null,
+        licenseNumber: body.licenseNumber,
+        licenseClass: body.licenseClass,
+        licenseIssuedAt: body.licenseIssuedAt ? new Date(body.licenseIssuedAt) : null,
+        licenseExpiry: new Date(body.licenseExpiry),
+        drivingExperience: body.drivingExperience,
+        accidentHistory: body.accidentHistory || null,
+        carMake: body.carMake,
+        carModel: body.carModel,
+        carYear: Number(body.carYear),
+        carColor: body.carColor || null,
+        plateNumber: body.plateNumber,
+        seatCount: body.seatCount,
+        transmission: body.transmission || null,
+        enginePower: body.enginePower || null,
+        dailyRate: Number(body.dailyRate),
+        carNotes: body.carNotes || null,
+        profilePhotoName:
+          attachmentEntries.find(
+            (item) => item.label === uploadFieldLabels.profilePhoto,
+          )?.originalName || null,
+        licenseFrontName:
+          attachmentEntries.find(
+            (item) => item.label === uploadFieldLabels.licenseFront,
+          )?.originalName || null,
+        licenseBackName:
+          attachmentEntries.find(
+            (item) => item.label === uploadFieldLabels.licenseBack,
+          )?.originalName || null,
+        licenseSelfieName:
+          attachmentEntries.find(
+            (item) => item.label === uploadFieldLabels.licenseSelfie,
+          )?.originalName || null,
+        carFrontName:
+          attachmentEntries.find(
+            (item) => item.label === uploadFieldLabels.carFront,
+          )?.originalName || null,
+        carBackName:
+          attachmentEntries.find(
+            (item) => item.label === uploadFieldLabels.carBack,
+          )?.originalName || null,
+        carInteriorName:
+          attachmentEntries.find(
+            (item) => item.label === uploadFieldLabels.carInterior,
+          )?.originalName || null,
+      },
+    });
+  } catch (error) {
+    if (isMissingTableError(error)) {
+      return new Response(
+        "Өгөгдлийн сангийн хүснэгт хараахан бэлэн болоогүй байна. `npx prisma db push` ажиллуулаад дахин оролдоно уу.",
+        { status: 500 },
+      );
+    }
+
+    return new Response("Хүсэлтийг өгөгдлийн санд хадгалах үед алдаа гарлаа.", {
+      status: 500,
+    });
+  }
 
   try {
     await Promise.all([

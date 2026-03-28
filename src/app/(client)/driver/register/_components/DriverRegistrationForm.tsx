@@ -35,6 +35,7 @@ type DriverRegistrationValues = {
   seatCount: string;
   transmission: string;
   enginePower: string;
+  dailyRate: string;
   carNotes: string;
 };
 
@@ -89,6 +90,7 @@ const initialFormValues: DriverRegistrationValues = {
   seatCount: "4",
   transmission: "Автомат",
   enginePower: "",
+  dailyRate: "",
   carNotes: "",
 };
 
@@ -695,6 +697,20 @@ export const DriverRegistrationForm = () => {
                 name="enginePower"
                 placeholder="2.0L, 3.5L..."
                 value={formValues.enginePower}
+                onChange={handleFieldChange}
+                className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-medium text-[var(--color-muted)]">
+                Өдрийн үнэ (₮) <span className="text-[var(--color-gold)]">*</span>
+              </span>
+              <input
+                name="dailyRate"
+                type="number"
+                min="0"
+                placeholder="180000"
+                value={formValues.dailyRate}
                 onChange={handleFieldChange}
                 className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
               />

@@ -15,7 +15,6 @@ datasource db {
 enum Role {
   USER
   DRIVER
-
 }
 
 enum DriverStatus {
@@ -39,6 +38,12 @@ enum BookingStatus {
   CANCELLED
 }
 
+enum DriverApplicationStatus {
+  PENDING
+  REVIEWING
+  APPROVED
+  REJECTED
+}
 
 
 model User {
@@ -50,7 +55,7 @@ model User {
   role          Role           @default(USER)
   driverProfile DriverProfile?
   bookings      Booking[]
-
+  driverApplications DriverApplication[]
   companyId     String?
   createdAt     DateTime       @default(now())
 }
@@ -76,6 +81,7 @@ model DriverProfile {
 
 model Car {
   id           String         @id @default(cuid())
+  slug         String         @unique
   make         String
   model        String
   year         Int
@@ -83,6 +89,9 @@ model Car {
   plate        String         @unique
   seats        Int
   transmission String
+  enginePower  String?
+  location     String?
+  insurance    String?
   status       CarStatus      @default(AVAILABLE)
   dailyRate    Int
   photos       String[]
@@ -124,3 +133,43 @@ model Review {
   createdAt DateTime @default(now())
 }
 
+model DriverApplication {
+  id                String                  @id @default(cuid())
+  user              User?                   @relation(fields: [userId], references: [id])
+  userId            String?
+  clerkId           String
+  lastName          String
+  firstName         String
+  phone             String
+  email             String
+  registerNumber    String
+  birthDate         DateTime?
+  homeAddress       String?
+  licenseNumber     String
+  licenseClass      String
+  licenseIssuedAt   DateTime?
+  licenseExpiry     DateTime
+  drivingExperience String
+  accidentHistory   String?
+  carMake           String
+  carModel          String
+  carYear           Int
+  carColor          String?
+  plateNumber       String
+  seatCount         String
+  transmission      String?
+  enginePower       String?
+  dailyRate         Int
+  carNotes          String?
+  profilePhotoName  String?
+  licenseFrontName  String?
+  licenseBackName   String?
+  licenseSelfieName String?
+  carFrontName      String?
+  carBackName       String?
+  carInteriorName   String?
+  status            DriverApplicationStatus @default(PENDING)
+  createdAt         DateTime                @default(now())
+
+  @@index([clerkId])
+}
