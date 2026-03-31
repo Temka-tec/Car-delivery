@@ -3,6 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 
+import { DriverRegistrationDialog } from "./DriverRegistrationDialog";
 import { driverSteps } from "./landing-data";
 
 export const DriverCTA = () => {
@@ -37,12 +38,10 @@ export const DriverCTA = () => {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/sign-up"
+              <DriverRegistrationDialog
+                label="Жолооч болох →"
                 className="rounded-lg bg-[var(--color-gold)] px-5 py-3 text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
-              >
-                Жолооч болох →
-              </Link>
+              />
               {!isSignedIn ? (
                 <Link
                   href="/sign-in"

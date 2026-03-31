@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { DriverRegistrationDialog } from "./DriverRegistrationDialog";
 import { stats } from "./landing-data";
 
 export const HeroSection = () => {
@@ -31,12 +32,10 @@ export const HeroSection = () => {
           >
             Машин захиалах →
           </Link>
-          <Link
-            href="/driver/register"
+          <DriverRegistrationDialog
+            label="Жолоочоор бүртгүүлэх"
             className="rounded-xl border border-white/15 px-8 py-4 text-sm font-medium text-[var(--color-text)] transition hover:border-[rgba(201,168,76,0.4)] hover:text-[var(--color-gold)]"
-          >
-            Жолоочоор бүртгүүлэх
-          </Link>
+          />
         </div>
 
         <div className="mt-14 grid gap-8 border-t border-white/8 pt-10 sm:grid-cols-2 lg:grid-cols-4">

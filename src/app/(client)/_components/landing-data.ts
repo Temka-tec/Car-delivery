@@ -1,6 +1,6 @@
 export const navItems = [
   { href: "#cars", label: "Машинууд" },
-  { href: "/driver/register", label: "Жолоочид" },
+  { href: "#drivers", label: "Жолоочид" },
   { href: "#about", label: "Тухай" },
 ] as const;
 

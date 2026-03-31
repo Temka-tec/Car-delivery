@@ -1,0 +1,105 @@
+"use client";
+
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+type DriverRegistrationDialogProps = {
+  className: string;
+  label: string;
+};
+
+export const DriverRegistrationDialog = ({
+  className,
+  label,
+}: DriverRegistrationDialogProps) => {
+  const { isLoaded, userId } = useAuth();
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
+  const driverRedirectUrl = "/driver/register";
+
+  const isSignedIn = isLoaded && Boolean(userId);
+
+  const handleTriggerClick = () => {
+    if (isSignedIn) {
+      router.push("/driver/register");
+      return;
+    }
+
+    setIsOpen(true);
+  };
+
+  return (
+    <>
+      <button type="button" onClick={handleTriggerClick} className={className}>
+        {label}
+      </button>
+
+      {isOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="driver-registration-dialog-title"
+        >
+          <div className="w-full max-w-md rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,var(--color-surface),var(--color-panel))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="inline-flex rounded-full border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.08)] px-3 py-1 text-xs text-[var(--color-gold)]">
+                  Жолоочийн бүртгэл
+                </div>
+                <h2
+                  id="driver-registration-dialog-title"
+                  className="mt-4 font-display text-2xl font-extrabold tracking-[-0.04em] text-[var(--color-text)]"
+                >
+                  Эхлээд хэрэглэгчээр нэвтэрч үргэлжлүүлнэ
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="rounded-full border border-white/10 px-3 py-1 text-sm text-[var(--color-muted)] transition hover:text-[var(--color-text)]"
+                aria-label="Хаах"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="mt-4 text-sm leading-7 text-[var(--color-muted)]">
+              Жолоочийн хүсэлт гаргахын өмнө хэрэглэгчийн бүртгэлтэй байх
+              шаардлагатай. Доорх сонголтоос нэгийг хийгээд шууд жолоочийн форм
+              руу орно.
+            </p>
+
+            <div className="mt-6 grid gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(
+                    `/sign-up?compact=1&redirect_url=${encodeURIComponent(driverRedirectUrl)}`,
+                  )
+                }
+                className="w-full rounded-xl bg-[var(--color-gold)] px-5 py-3 text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
+              >
+                Бүртгүүлээд үргэлжлүүлэх
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(
+                    `/sign-in?compact=1&redirect_url=${encodeURIComponent(driverRedirectUrl)}`,
+                  )
+                }
+                className="w-full rounded-xl border border-[rgba(201,168,76,0.3)] px-5 py-3 text-sm font-medium text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.08)]"
+              >
+                Нэвтрээд үргэлжлүүлэх
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+};

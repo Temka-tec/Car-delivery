@@ -2,13 +2,53 @@
 
 import Link from "next/link";
 import { SignIn, useAuth } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 
 export default function SignInPage() {
   const { isLoaded, userId } = useAuth();
+  const searchParams = useSearchParams();
+  const compactMode = searchParams.get("compact") === "1";
+  const redirectUrl = searchParams.get("redirect_url") || "/driver/dashboard";
 
   if (isLoaded && userId) {
-    redirect("/");
+    redirect(redirectUrl);
+  }
+
+  if (compactMode) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] p-4 text-[var(--color-text)] sm:p-6">
+        <div className="w-full max-w-md rounded-[28px] border border-white/8 bg-[var(--color-surface)] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.35)] sm:p-6">
+          <SignIn
+            appearance={{
+              elements: {
+                rootBox: "w-full",
+                card: "shadow-none bg-transparent border-0",
+                headerTitle:
+                  "font-display text-2xl font-extrabold text-[var(--color-text)]",
+                headerSubtitle: "text-[var(--color-muted)]",
+                socialButtonsBlockButton:
+                  "border-white/8 bg-[var(--color-panel)] text-[var(--color-text)] hover:bg-[#22222E]",
+                socialButtonsBlockButtonText: "text-[var(--color-text)]",
+                formButtonPrimary:
+                  "bg-[var(--color-gold)] text-[var(--color-ink)] hover:bg-[var(--color-gold-light)] shadow-none",
+                formFieldInput:
+                  "bg-[var(--color-panel)] border-white/8 text-[var(--color-text)]",
+                footerActionLink:
+                  "text-[var(--color-gold)] hover:text-[var(--color-gold-light)]",
+                formFieldLabel: "text-[var(--color-muted)]",
+                dividerLine: "bg-white/8",
+                dividerText: "text-[var(--color-muted)]",
+              },
+            }}
+            path="/sign-in"
+            routing="path"
+            signUpUrl={`/sign-up?compact=1&redirect_url=${encodeURIComponent(redirectUrl)}`}
+            forceRedirectUrl={redirectUrl}
+            fallbackRedirectUrl={redirectUrl}
+          />
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -77,6 +117,7 @@ export default function SignInPage() {
               path="/sign-in"
               routing="path"
               signUpUrl="/sign-up"
+              forceRedirectUrl={redirectUrl}
               fallbackRedirectUrl="/driver/dashboard"
             />
           </div>
