@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { SignOutButton } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 
+import { SignOutAction } from "@/components/sign-out-action";
 import { getCurrentViewer } from "@/lib/current-viewer";
 
 const formatDate = (value: Date) =>
@@ -55,11 +55,7 @@ export default async function DriverProfilePage() {
             >
               ← Dashboard
             </Link>
-            <SignOutButton>
-              <button className="rounded-xl border border-[rgba(248,113,113,0.25)] bg-[rgba(248,113,113,0.08)] px-5 py-3 text-sm text-[#F87171] transition hover:bg-[rgba(248,113,113,0.14)]">
-                Гарах
-              </button>
-            </SignOutButton>
+            <SignOutAction className="rounded-xl border border-[rgba(248,113,113,0.25)] bg-[rgba(248,113,113,0.08)] px-5 py-3 text-sm text-[#F87171] transition hover:bg-[rgba(248,113,113,0.14)]" />
           </div>
         </div>
 

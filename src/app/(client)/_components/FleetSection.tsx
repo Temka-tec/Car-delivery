@@ -11,10 +11,10 @@ export const FleetSection = async () => {
   const cars = await getAvailableCars(6);
 
   return (
-    <section id="cars" className="px-6 py-14 lg:px-10">
+    <section id="cars" className="px-4 py-14 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="font-display text-3xl font-bold tracking-[-0.04em] text-[var(--color-text)]">
+          <div className="font-display text-2xl font-bold tracking-[-0.04em] text-[var(--color-text)] sm:text-3xl">
             Сул байгаа <span className="text-[var(--color-gold)]">машинууд</span>
           </div>
           <a
@@ -66,31 +66,31 @@ export const FleetSection = async () => {
                   ))}
                 </div>
 
-                <div className="mt-5 flex items-center justify-between gap-3">
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="font-display text-xl font-bold text-[var(--color-gold)]">
                     {car.price}
                     <span className="ml-1 font-sans text-xs font-normal text-[var(--color-muted)]">
                       / өдөр
                     </span>
                   </div>
-                  <div className="flex flex-wrap justify-end gap-2">
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
                     <Link
                       href={`/cars/${car.slug}`}
-                      className="rounded-lg border border-[rgba(201,168,76,0.28)] px-4 py-2 text-sm font-medium text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.08)]"
+                      className="rounded-lg border border-[rgba(201,168,76,0.28)] px-4 py-2 text-center text-sm font-medium text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.08)]"
                     >
                       Дэлгэрэнгүй
                     </Link>
                     {!isSignedIn ? (
                       <Link
                         href="/sign-in"
-                        className="rounded-lg bg-[var(--color-gold)] px-4 py-2 text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
+                        className="rounded-lg bg-[var(--color-gold)] px-4 py-2 text-center text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
                       >
                         Нэвтрэх
                       </Link>
                     ) : (
                       <Link
                         href="/booking"
-                        className="rounded-lg bg-[var(--color-gold)] px-4 py-2 text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
+                        className="rounded-lg bg-[var(--color-gold)] px-4 py-2 text-center text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
                       >
                         Захиалах
                       </Link>

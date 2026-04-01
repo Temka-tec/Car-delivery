@@ -8,13 +8,13 @@ export const DriverCTA = async () => {
   const viewer = await getCurrentViewer();
 
   return (
-    <section id="drivers" className="px-6 py-14 lg:px-10">
+    <section id="drivers" className="px-4 py-14 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-6xl">
-        <div className="flex flex-col gap-8 rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[linear-gradient(135deg,var(--color-surface),var(--color-panel))] p-8 lg:flex-row lg:items-center lg:p-10">
-          <div className="text-5xl leading-none">👨‍✈️</div>
+        <div className="flex flex-col gap-8 rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[linear-gradient(135deg,var(--color-surface),var(--color-panel))] p-6 sm:p-8 lg:flex-row lg:items-center lg:p-10">
+          <div className="text-4xl leading-none sm:text-5xl">👨‍✈️</div>
 
           <div className="max-w-3xl">
-            <h2 className="font-display text-3xl font-bold tracking-[-0.04em] text-[var(--color-text)]">
+            <h2 className="font-display text-2xl font-bold tracking-[-0.04em] text-[var(--color-text)] sm:text-3xl">
               Жолоочоор ажиллахыг хүсч байна уу?
             </h2>
             <p className="mt-3 text-sm leading-7 text-[var(--color-muted)] sm:text-base">
@@ -34,33 +34,40 @@ export const DriverCTA = async () => {
               ))}
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               {viewer.isDriver ? (
                 <Link
                   href="/driver/profile"
-                  className="rounded-lg bg-[var(--color-gold)] px-5 py-3 text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
+                  className="rounded-lg bg-[var(--color-gold)] px-5 py-3 text-center text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
                 >
-                  Профайл үзэх
+                  Жолоочийн профайл
+                </Link>
+              ) : viewer.hasDriverApplication ? (
+                <Link
+                  href="/driver/dashboard"
+                  className="rounded-lg bg-[var(--color-gold)] px-5 py-3 text-center text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
+                >
+                  Хүсэлтийн төлөв
                 </Link>
               ) : (
                 <DriverRegistrationDialog
-                  label="Жолооч болох →"
-                  className="rounded-lg bg-[var(--color-gold)] px-5 py-3 text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
+                  label="Жолоочийн хүсэлт →"
+                  className="rounded-lg bg-[var(--color-gold)] px-5 py-3 text-center text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
                 />
               )}
               {!viewer.isSignedIn ? (
                 <Link
                   href="/sign-in"
-                  className="rounded-lg border border-[rgba(201,168,76,0.4)] px-5 py-3 text-sm text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.1)]"
+                  className="rounded-lg border border-[rgba(201,168,76,0.4)] px-5 py-3 text-center text-sm text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.1)]"
                 >
                   Нэвтрэх
                 </Link>
               ) : (
                 <Link
                   href={viewer.isDriver ? "/driver/profile" : "/driver/dashboard"}
-                  className="rounded-lg border border-[rgba(201,168,76,0.25)] px-5 py-3 text-sm text-[var(--color-muted)] transition hover:border-[rgba(201,168,76,0.4)] hover:text-[var(--color-text)]"
+                  className="rounded-lg border border-[rgba(201,168,76,0.25)] px-5 py-3 text-center text-sm text-[var(--color-muted)] transition hover:border-[rgba(201,168,76,0.4)] hover:text-[var(--color-text)]"
                 >
-                  {viewer.isDriver ? "Dashboard харах" : "Хүсэлтээ шалгах"}
+                  {viewer.isDriver ? "Dashboard" : "Хүсэлтийн самбар"}
                 </Link>
               )}
             </div>

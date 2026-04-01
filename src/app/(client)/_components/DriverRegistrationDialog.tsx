@@ -46,7 +46,7 @@ export const DriverRegistrationDialog = ({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="inline-flex rounded-full border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.08)] px-3 py-1 text-xs text-[var(--color-gold)]">
-                  Жолоочийн бүртгэл
+                  Жолоочийн хүсэлт
                 </div>
                 <h2
                   id="driver-registration-dialog-title"
@@ -68,7 +68,7 @@ export const DriverRegistrationDialog = ({
 
             <p className="mt-4 text-sm leading-7 text-[var(--color-muted)]">
               Жолоочийн хүсэлт гаргахын өмнө хэрэглэгчийн бүртгэлтэй байх
-              шаардлагатай. Доорх сонголтоос нэгийг хийгээд шууд жолоочийн форм
+              шаардлагатай. Доорх сонголтоос нэгийг хийгээд шууд хүсэлтийн форм
               руу орно.
             </p>
 

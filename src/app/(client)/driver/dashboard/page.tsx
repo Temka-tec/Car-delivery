@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { SignOutButton } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 
+import { SignOutAction } from "@/components/sign-out-action";
 import { prisma } from "@/lib/prisma";
 import { getCurrentViewer } from "@/lib/current-viewer";
 
@@ -58,20 +58,16 @@ export default async function DriverDashboardPage() {
             >
               ALPHARD<span className="text-[var(--color-gold)]">.</span>
             </Link>
-            <SignOutButton>
-              <button className="rounded-xl border border-[rgba(248,113,113,0.25)] bg-[rgba(248,113,113,0.08)] px-5 py-3 text-sm text-[#F87171] transition hover:bg-[rgba(248,113,113,0.14)]">
-                Гарах
-              </button>
-            </SignOutButton>
+            <SignOutAction className="rounded-xl border border-[rgba(248,113,113,0.25)] bg-[rgba(248,113,113,0.08)] px-5 py-3 text-sm text-[#F87171] transition hover:bg-[rgba(248,113,113,0.14)]" />
           </div>
 
           <section className="rounded-[28px] border border-white/8 bg-[var(--color-surface)] p-6 sm:p-8">
             <div className="inline-flex rounded-full border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.08)] px-3 py-1 text-xs text-[var(--color-gold)]">
-              Жолоочийн хэсэг
+              Хүсэлтийн самбар
             </div>
             <h1 className="mt-4 font-display text-3xl font-extrabold tracking-[-0.04em]">
               {viewer.latestDriverApplication
-                ? "Таны хүсэлтийн төлөв"
+                ? "Таны жолоочийн хүсэлтийн төлөв"
                 : "Жолоочийн хүсэлт илгээгээгүй байна"}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--color-muted)]">
@@ -182,11 +178,7 @@ export default async function DriverDashboardPage() {
             >
               Профайл
             </Link>
-            <SignOutButton>
-              <button className="rounded-xl border border-[rgba(248,113,113,0.25)] bg-[rgba(248,113,113,0.08)] px-5 py-3 text-sm text-[#F87171] transition hover:bg-[rgba(248,113,113,0.14)]">
-                Гарах
-              </button>
-            </SignOutButton>
+            <SignOutAction className="rounded-xl border border-[rgba(248,113,113,0.25)] bg-[rgba(248,113,113,0.08)] px-5 py-3 text-sm text-[#F87171] transition hover:bg-[rgba(248,113,113,0.14)]" />
           </div>
         </div>
 
