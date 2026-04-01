@@ -78,10 +78,6 @@ export async function POST(req: Request) {
     return new Response("Нэвтэрсэн хэрэглэгч байхгүй байна.", { status: 401 });
   }
 
-  if (!resendApiKey) {
-    return new Response("Missing RESEND_API_KEY", { status: 500 });
-  }
-
   const user = await currentUser();
   const formData = await req.formData();
   const body = Object.fromEntries(
@@ -165,7 +161,6 @@ export async function POST(req: Request) {
     );
   }
 
-  const resend = new Resend(resendApiKey);
   const rows = Object.entries(fieldLabels)
     .map(([key, label]) => {
       const value = escapeHtml(body[key]?.toString().trim() || "—");
@@ -191,15 +186,28 @@ export async function POST(req: Request) {
     user?.primaryEmailAddress?.emailAddress || body.email || "Unknown";
   const applicantEmail = body.email?.toString().trim() || clerkEmail;
   try {
-    const existingUser = await prisma.user.findUnique({
+    const primaryEmail =
+      user?.primaryEmailAddress?.emailAddress || body.email || `${userId}@clerk.local`;
+    const dbUser = await prisma.user.upsert({
       where: {
         clerkId: userId,
+      },
+      update: {
+        email: primaryEmail,
+        name: clerkName === "Unknown" ? null : clerkName,
+        phone: body.phone || user?.phoneNumbers?.[0]?.phoneNumber || null,
+      },
+      create: {
+        clerkId: userId,
+        email: primaryEmail,
+        name: clerkName === "Unknown" ? null : clerkName,
+        phone: body.phone || user?.phoneNumbers?.[0]?.phoneNumber || null,
       },
     });
 
     await prisma.driverApplication.create({
       data: {
-        userId: existingUser?.id,
+        userId: dbUser.id,
         clerkId: userId,
         lastName: body.lastName,
         firstName: body.firstName,
@@ -267,6 +275,15 @@ export async function POST(req: Request) {
     });
   }
 
+  if (!resendApiKey) {
+    return Response.json({
+      success: true,
+      emailSent: false,
+    });
+  }
+
+  const resend = new Resend(resendApiKey);
+
   try {
     await Promise.all([
       resend.emails.send({
@@ -314,15 +331,12 @@ export async function POST(req: Request) {
         `,
       }),
     ]);
-  } catch (error) {
-    if (error instanceof Response) {
-      return error;
-    }
-
-    return new Response("Resend рүү хүсэлт илгээх үед алдаа гарлаа.", {
-      status: 500,
+  } catch {
+    return Response.json({
+      success: true,
+      emailSent: false,
     });
   }
 
-  return Response.json({ success: true });
+  return Response.json({ success: true, emailSent: true });
 }

@@ -1,9 +1,12 @@
 import Link from "next/link";
 
+import { getCurrentViewer } from "@/lib/current-viewer";
 import { DriverRegistrationDialog } from "./DriverRegistrationDialog";
 import { stats } from "./landing-data";
 
-export const HeroSection = () => {
+export const HeroSection = async () => {
+  const viewer = await getCurrentViewer();
+
   return (
     <section className="relative overflow-hidden border-b border-white/8 bg-[linear-gradient(135deg,#0A0A0F_0%,#12121A_50%,#0F0F18_100%)] px-6 py-20 lg:px-10 lg:py-28">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,rgba(201,168,76,0.08)_0%,transparent_70%)]" />
@@ -32,10 +35,19 @@ export const HeroSection = () => {
           >
             Машин захиалах →
           </Link>
-          <DriverRegistrationDialog
-            label="Жолоочоор бүртгүүлэх"
-            className="rounded-xl border border-white/15 px-8 py-4 text-sm font-medium text-[var(--color-text)] transition hover:border-[rgba(201,168,76,0.4)] hover:text-[var(--color-gold)]"
-          />
+          {viewer.isDriver ? (
+            <Link
+              href="/driver/profile"
+              className="rounded-xl border border-white/15 px-8 py-4 text-sm font-medium text-[var(--color-text)] transition hover:border-[rgba(201,168,76,0.4)] hover:text-[var(--color-gold)]"
+            >
+              Профайл үзэх
+            </Link>
+          ) : (
+            <DriverRegistrationDialog
+              label="Жолоочоор бүртгүүлэх"
+              className="rounded-xl border border-white/15 px-8 py-4 text-sm font-medium text-[var(--color-text)] transition hover:border-[rgba(201,168,76,0.4)] hover:text-[var(--color-gold)]"
+            />
+          )}
         </div>
 
         <div className="mt-14 grid gap-8 border-t border-white/8 pt-10 sm:grid-cols-2 lg:grid-cols-4">

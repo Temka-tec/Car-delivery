@@ -116,6 +116,9 @@ const uploadFieldLabels: Record<UploadFieldName, string> = {
 
 const acceptedImageTypes = "image/jpeg,image/png,image/webp";
 
+const demoTextFile = (name: string) =>
+  new File(["demo"], name, { type: "image/jpeg" });
+
 const formatFileSize = (size: number) => {
   if (size >= 1024 * 1024) {
     return `${(size / (1024 * 1024)).toFixed(1)} MB`;
@@ -132,6 +135,67 @@ export const DriverRegistrationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const router = useRouter();
+
+  const applyPersonalDemo = () => {
+    setSubmitError(null);
+    setFormValues((current) => ({
+      ...current,
+      lastName: "Батболд",
+      firstName: "Тэмүүлэн",
+      phone: "99112233",
+      email: "temuulen.driver@example.com",
+      registerNumber: "УБ00112233",
+      birthDate: "1994-05-12",
+      homeAddress: "Улаанбаатар, Хан-Уул дүүрэг, 15-р хороо, River Garden",
+    }));
+    setUploadFiles((current) => ({
+      ...current,
+      profilePhoto: demoTextFile("demo-profile.jpg"),
+    }));
+  };
+
+  const applyDocumentDemo = () => {
+    setSubmitError(null);
+    setFormValues((current) => ({
+      ...current,
+      licenseNumber: "MN-98765432",
+      licenseClass: "B ангилал",
+      licenseIssuedAt: "2018-04-10",
+      licenseExpiry: "2028-04-10",
+      drivingExperience: "6-10 жил",
+      accidentHistory: "Үгүй",
+    }));
+    setUploadFiles((current) => ({
+      ...current,
+      licenseFront: demoTextFile("demo-license-front.jpg"),
+      licenseBack: demoTextFile("demo-license-back.jpg"),
+      licenseSelfie: demoTextFile("demo-license-selfie.jpg"),
+    }));
+  };
+
+  const applyCarDemo = () => {
+    setSubmitError(null);
+    setFormValues((current) => ({
+      ...current,
+      carMake: "Toyota",
+      carModel: "Alphard",
+      carYear: "2022",
+      carColor: "Цагаан",
+      plateNumber: "1234 УНА",
+      seatCount: "7",
+      transmission: "Автомат",
+      enginePower: "3.5L",
+      dailyRate: "250000",
+      carNotes:
+        "Арьсан салон, 2 люк, халаагууртай суудал, хот болон хөдөө чиглэлд явах боломжтой.",
+    }));
+    setUploadFiles((current) => ({
+      ...current,
+      carFront: demoTextFile("demo-car-front.jpg"),
+      carBack: demoTextFile("demo-car-back.jpg"),
+      carInterior: demoTextFile("demo-car-interior.jpg"),
+    }));
+  };
 
   const handleFieldChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
@@ -199,7 +263,7 @@ export const DriverRegistrationForm = () => {
         return;
       }
 
-      router.push("/driver/dashboard?submitted=1");
+      router.push("/?driverApplicationSubmitted=1");
     } catch {
       setSubmitError("Хүсэлт илгээх үед алдаа гарлаа. Дахин оролдоно уу.");
     } finally {
@@ -320,6 +384,16 @@ export const DriverRegistrationForm = () => {
 
         {activeStep === 1 ? (
           <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex justify-end md:col-span-2">
+              <button
+                type="button"
+                onClick={applyPersonalDemo}
+                className="rounded-full border border-[rgba(201,168,76,0.3)] px-4 py-2 text-xs font-medium text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.08)]"
+              >
+                Demo мэдээлэл оруулах
+              </button>
+            </div>
+
             <div className={`${sectionTitleClasses} md:col-span-2`}>
               <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.1)] text-sm">
                 👤
@@ -427,6 +501,16 @@ export const DriverRegistrationForm = () => {
 
         {activeStep === 2 ? (
           <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex justify-end md:col-span-2">
+              <button
+                type="button"
+                onClick={applyDocumentDemo}
+                className="rounded-full border border-[rgba(201,168,76,0.3)] px-4 py-2 text-xs font-medium text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.08)]"
+              >
+                Demo баримт оруулах
+              </button>
+            </div>
+
             <div className={`${sectionTitleClasses} md:col-span-2`}>
               <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.1)] text-sm">
                 🪪
@@ -571,6 +655,16 @@ export const DriverRegistrationForm = () => {
 
         {activeStep === 3 ? (
           <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex justify-end md:col-span-2">
+              <button
+                type="button"
+                onClick={applyCarDemo}
+                className="rounded-full border border-[rgba(201,168,76,0.3)] px-4 py-2 text-xs font-medium text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.08)]"
+              >
+                Demo машины мэдээлэл оруулах
+              </button>
+            </div>
+
             <div className={`${sectionTitleClasses} md:col-span-2`}>
               <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.1)] text-sm">
                 🚙
