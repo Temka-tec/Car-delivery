@@ -1,9 +1,10 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { Role } from "@/generated/prisma/client";
-import { isAdminEmail, slugify } from "@/lib/admin";
+import { slugify } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 
 const approvalSchema = ["APPROVED", "REJECTED", "REVIEWING"] as const;
+type ApprovalStatus = (typeof approvalSchema)[number];
 
 const buildCarSlug = (
   make: string,
@@ -28,20 +29,16 @@ export async function PATCH(
   const adminUser = await prisma.user.findUnique({
     where: { clerkId: userId },
   });
-  const clerkUser = await currentUser();
 
-  const adminEmail =
-    adminUser?.email ?? clerkUser?.primaryEmailAddress?.emailAddress ?? null;
-
-  if (!isAdminEmail(adminEmail)) {
+  if (adminUser?.role !== Role.ADMIN) {
     return new Response("Энэ үйлдэлд зөвшөөрөлгүй байна.", { status: 403 });
   }
 
   const { id } = await context.params;
   const payload = (await req.json()) as { status?: string };
-  const status = payload.status;
+  const status = payload.status as ApprovalStatus | undefined;
 
-  if (!status || !approvalSchema.includes(status as (typeof approvalSchema)[number])) {
+  if (!status || !approvalSchema.includes(status)) {
     return new Response("Төлөв буруу байна.", { status: 400 });
   }
 

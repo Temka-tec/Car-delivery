@@ -1,7 +1,7 @@
 import "server-only";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { isAdminEmail } from "@/lib/admin";
+import { Role } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 
 export const getCurrentViewer = async () => {
@@ -44,7 +44,7 @@ export const getCurrentViewer = async () => {
 
   const latestDriverApplication = dbUser?.driverApplications[0] ?? null;
   const isDriver =
-    dbUser?.role === "DRIVER" || dbUser?.driverProfile?.status === "APPROVED";
+    dbUser?.role === Role.DRIVER || dbUser?.driverProfile?.status === "APPROVED";
   const hasDriverApplication = Boolean(latestDriverApplication);
   const displayName =
     dbUser?.name ||
@@ -53,7 +53,7 @@ export const getCurrentViewer = async () => {
     null;
   const displayEmail =
     dbUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || null;
-  const isAdmin = isAdminEmail(displayEmail);
+  const isAdmin = dbUser?.role === Role.ADMIN;
 
   return {
     isSignedIn: true,
