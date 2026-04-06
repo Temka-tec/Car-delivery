@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCarDetailsBySlug } from "@/lib/car-data";
 
+export const dynamic = "force-dynamic";
+
 const formatPrice = (value: number) => `₮${value.toLocaleString()}`;
 
 export default async function CarDetailsPage({

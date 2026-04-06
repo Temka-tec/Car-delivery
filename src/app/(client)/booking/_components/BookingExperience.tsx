@@ -6,7 +6,7 @@ import type { CarListItem } from "@/lib/car-data";
 
 import { filterGroups, searchDefaults } from "./booking-data";
 
-type BookingCar = CarListItem & {
+type BookingCar = Omit<CarListItem, "price"> & {
   selected: boolean;
   premium: boolean;
   meta: string;
