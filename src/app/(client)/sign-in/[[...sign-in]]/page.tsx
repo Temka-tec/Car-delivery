@@ -8,7 +8,7 @@ export default function SignInPage() {
   const { isLoaded, userId } = useAuth();
   const searchParams = useSearchParams();
   const compactMode = searchParams.get("compact") === "1";
-  const redirectUrl = searchParams.get("redirect_url") || "/driver/dashboard";
+  const redirectUrl = searchParams.get("redirect_url") || "/auth/redirect";
 
   if (isLoaded && userId) {
     redirect(redirectUrl);
@@ -118,7 +118,7 @@ export default function SignInPage() {
               routing="path"
               signUpUrl="/sign-up"
               forceRedirectUrl={redirectUrl}
-              fallbackRedirectUrl="/driver/dashboard"
+              fallbackRedirectUrl={redirectUrl}
             />
           </div>
         </section>

@@ -38,6 +38,14 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
                 {item.label}
               </a>
             ))}
+            {isAdmin ? (
+              <Link
+                href="/admin/driver-applications"
+                className="text-sm font-medium text-[var(--color-gold)] transition hover:text-[var(--color-gold-light)]"
+              >
+                Админ
+              </Link>
+            ) : null}
           </nav>
 
           <div className="hidden items-center gap-3 md:flex">
@@ -110,6 +118,15 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
                   {item.label}
                 </a>
               ))}
+              {isAdmin ? (
+                <Link
+                  href="/admin/driver-applications"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-[var(--color-gold)] transition hover:bg-[var(--color-panel)]"
+                >
+                  Админ
+                </Link>
+              ) : null}
             </nav>
 
             <div className="mt-4 grid gap-2">

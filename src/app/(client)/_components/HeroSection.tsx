@@ -29,6 +29,14 @@ export const HeroSection = async () => {
         </p>
 
         <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          {viewer.isAdmin ? (
+            <Link
+              href="/admin/driver-applications"
+              className="rounded-xl border border-[rgba(201,168,76,0.4)] px-6 py-4 text-center text-sm font-medium text-[var(--color-gold)] transition hover:-translate-y-0.5 hover:bg-[rgba(201,168,76,0.08)] sm:px-8"
+            >
+              Админ хэсэг рүү
+            </Link>
+          ) : null}
           <Link
             href="/booking"
             className="rounded-xl bg-[var(--color-gold)] px-6 py-4 text-center text-sm font-medium text-[var(--color-ink)] transition hover:-translate-y-0.5 hover:bg-[var(--color-gold-light)] sm:px-8"
