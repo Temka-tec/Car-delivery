@@ -1,10 +1,44 @@
 import "server-only";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
+import type { Prisma } from "@/generated/prisma/client";
 import { Role } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 
-export const getCurrentViewer = async () => {
+const currentViewerInclude = {
+  driverProfile: {
+    include: {
+      car: true,
+    },
+  },
+  driverApplications: {
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 1,
+  },
+} satisfies Prisma.UserInclude;
+
+type CurrentViewerUser = Prisma.UserGetPayload<{
+  include: typeof currentViewerInclude;
+}>;
+
+export type CurrentViewer = {
+  isSignedIn: boolean;
+  isDriver: boolean;
+  isAdmin: boolean;
+  hasDriverApplication: boolean;
+  clerkId: string | null;
+  user: CurrentViewerUser | null;
+  driverProfile: CurrentViewerUser["driverProfile"] | null;
+  latestDriverApplication:
+    | CurrentViewerUser["driverApplications"][number]
+    | null;
+  displayName: string | null;
+  displayEmail: string | null;
+};
+
+export const getCurrentViewer = async (): Promise<CurrentViewer> => {
   const { userId } = await auth();
 
   if (!userId) {
@@ -26,19 +60,7 @@ export const getCurrentViewer = async () => {
     currentUser(),
     prisma.user.findUnique({
       where: { clerkId: userId },
-      include: {
-        driverProfile: {
-          include: {
-            car: true,
-          },
-        },
-        driverApplications: {
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: 1,
-        },
-      },
+      include: currentViewerInclude,
     }),
   ]);
 
