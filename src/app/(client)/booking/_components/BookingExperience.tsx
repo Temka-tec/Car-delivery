@@ -93,12 +93,20 @@ export const BookingExperience = ({
     <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
       <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <header className="flex flex-col gap-4 border-b border-white/8 px-2 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <Link
-            href="/"
-            className="font-display text-2xl font-extrabold tracking-[-0.04em]"
-          >
-            ALPHARD<span className="text-[var(--color-gold)]">.</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="rounded-lg border border-white/8 px-4 py-2 text-sm text-[var(--color-muted)] transition hover:text-[var(--color-text)]"
+            >
+              ← Нүүр хуудас
+            </Link>
+            <Link
+              href="/"
+              className="font-display text-2xl font-extrabold tracking-[-0.04em]"
+            >
+              ALPHARD<span className="text-[var(--color-gold)]">.</span>
+            </Link>
+          </div>
           <div className="flex items-center gap-4 self-end sm:self-auto">
             <span className="text-sm text-[var(--color-muted)]">
               Сайн байна уу, Батаа
@@ -119,7 +127,6 @@ export const BookingExperience = ({
                 Эхлэх огноо
               </span>
               <input
-                defaultValue={searchDefaults.startDate}
                 type="date"
                 className="rounded-lg border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-sm outline-none transition focus:border-[rgba(201,168,76,0.25)]"
               />
@@ -129,7 +136,6 @@ export const BookingExperience = ({
                 Дуусах огноо
               </span>
               <input
-                defaultValue={searchDefaults.endDate}
                 type="date"
                 className="rounded-lg border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-sm outline-none transition focus:border-[rgba(201,168,76,0.25)]"
               />
@@ -387,7 +393,7 @@ export const BookingExperience = ({
                   <div className="flex justify-between border-b border-white/8 py-2">
                     <span className="text-[var(--color-muted)]">Огноо</span>
                     <span className="font-medium">
-                      {modalStart} → {modalEnd}
+                      {modalStart || "Сонгоогүй"} → {modalEnd || "Сонгоогүй"}
                     </span>
                   </div>
                   <div className="flex justify-between border-b border-white/8 py-2">

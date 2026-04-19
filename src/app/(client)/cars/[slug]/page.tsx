@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import { getCarDetailsBySlug } from "@/lib/car-data";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ export default async function CarDetailsPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const { userId } = await auth();
   const { slug } = await params;
   const car = await getCarDetailsBySlug(slug);
 
@@ -21,6 +23,7 @@ export default async function CarDetailsPage({
 
   const serviceFee = Math.round(car.priceValue * 0.05);
   const total = car.priceValue + serviceFee;
+  const isOwnCar = Boolean(userId && car.ownerClerkId && userId === car.ownerClerkId);
 
   return (
     <main className="min-h-screen bg-[var(--color-bg)] px-4 py-6 text-[var(--color-text)] sm:px-6 lg:px-8">
@@ -253,7 +256,6 @@ export default async function CarDetailsPage({
                 <label className="flex flex-col gap-1.5 text-sm text-[var(--color-muted)]">
                   Эхлэх огноо
                   <input
-                    defaultValue="2026-03-25"
                     type="date"
                     className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-[var(--color-text)] outline-none"
                   />
@@ -261,7 +263,6 @@ export default async function CarDetailsPage({
                 <label className="flex flex-col gap-1.5 text-sm text-[var(--color-muted)]">
                   Дуусах огноо
                   <input
-                    defaultValue="2026-03-28"
                     type="date"
                     className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-[var(--color-text)] outline-none"
                   />
@@ -322,18 +323,26 @@ export default async function CarDetailsPage({
               </div>
 
               <div className="grid gap-2">
-                <Link
-                  href="/booking"
-                  className="rounded-xl bg-[var(--color-gold)] px-4 py-3 text-center text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
-                >
-                  Захиалга илгээх
-                </Link>
-                <Link
-                  href="/sign-in"
-                  className="rounded-xl border border-[rgba(201,168,76,0.28)] px-4 py-3 text-center text-sm font-medium text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.08)]"
-                >
-                  Нэвтэрч үргэлжлүүлэх
-                </Link>
+                {isOwnCar ? (
+                  <div className="rounded-xl border border-[rgba(248,113,113,0.22)] bg-[rgba(248,113,113,0.08)] px-4 py-3 text-center text-sm font-medium text-[#FCA5A5]">
+                    Өөрийн нэмсэн машиныг өөрөө захиалах боломжгүй.
+                  </div>
+                ) : (
+                  <Link
+                    href="/booking"
+                    className="rounded-xl bg-[var(--color-gold)] px-4 py-3 text-center text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
+                  >
+                    Захиалга илгээх
+                  </Link>
+                )}
+                {!userId ? (
+                  <Link
+                    href="/sign-in"
+                    className="rounded-xl border border-[rgba(201,168,76,0.28)] px-4 py-3 text-center text-sm font-medium text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.08)]"
+                  >
+                    Нэвтэрч үргэлжлүүлэх
+                  </Link>
+                ) : null}
               </div>
             </div>
           </aside>

@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { ChangeEvent } from "react";
 
 import {
@@ -22,7 +25,9 @@ type StepSharedProps = {
   formValues: DriverRegistrationValues;
   uploadFiles: UploadFiles;
   onFieldChange: (
-    event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+    event: ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => void;
   onUploadChange: (
     field: UploadFieldName,
@@ -72,6 +77,9 @@ export const PersonalInfoStep = ({
     .slice(2)
     .replace(/\D/g, "")
     .slice(0, 8);
+  const [openRegisterPicker, setOpenRegisterPicker] = useState<0 | 1 | null>(
+    null,
+  );
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -94,42 +102,65 @@ export const PersonalInfoStep = ({
               className="flex flex-col gap-1.5 text-sm md:col-auto"
             >
               <span className="text-xs font-medium text-[var(--color-muted)]">
-                {field.label} <span className="text-[var(--color-gold)]">*</span>
+                {field.label}{" "}
+                <span className="text-[var(--color-gold)]">*</span>
               </span>
               <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1.6fr]">
                 {[0, 1].map((index) => (
-                  <details key={index} className="group relative">
-                    <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition group-open:border-[rgba(201,168,76,0.45)]">
+                  <div key={index} className="relative">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenRegisterPicker((current) =>
+                          current === index ? null : (index as 0 | 1),
+                        )
+                      }
+                      className={`flex w-full items-center justify-between rounded-xl border bg-[var(--color-panel)] px-4 py-3 outline-none transition ${
+                        openRegisterPicker === index
+                          ? "border-[rgba(201,168,76,0.45)]"
+                          : "border-white/8"
+                      }`}
+                    >
                       <span className="text-base font-semibold">
-                        {registerPrefix[index] || "Үсэг"}
+                        {registerPrefix[index] || "А"}
                       </span>
-                      <span className="text-xs text-[var(--color-muted)]">Сонгох</span>
-                    </summary>
-                    <div className="absolute z-20 mt-2 grid max-h-56 w-full grid-cols-4 gap-2 overflow-y-auto rounded-2xl border border-white/8 bg-[#191923] p-3 shadow-2xl">
-                      {mongolianRegisterLetters.map((letter) => (
-                        <button
-                          key={`${index}-${letter}`}
-                          type="button"
-                          onClick={() => onRegisterPrefixChange(index as 0 | 1, letter)}
-                          className="rounded-lg border border-white/8 bg-[var(--color-panel)] px-2 py-2 text-sm font-medium transition hover:border-[rgba(201,168,76,0.45)] hover:text-[var(--color-gold)]"
-                        >
-                          {letter}
-                        </button>
-                      ))}
-                    </div>
-                  </details>
+                      <span className="text-sm text-[var(--color-muted)]">
+                        ▾
+                      </span>
+                    </button>
+                    {openRegisterPicker === index ? (
+                      <div className="absolute z-20 mt-2 grid max-h-56 min-w-[100px] w-[calc(100%+56px)] grid-cols-4 gap-2 overflow-y-auto rounded-2xl border border-white/8 bg-[#191923] p-3 shadow-2xl">
+                        {mongolianRegisterLetters.map((letter) => (
+                          <button
+                            key={`${index}-${letter}`}
+                            type="button"
+                            onClick={() => {
+                              onRegisterPrefixChange(index as 0 | 1, letter);
+                              setOpenRegisterPicker(null);
+                            }}
+                            className="rounded-xl border-2 border-[rgba(255,255,255,0.14)] bg-[var(--color-panel)] px-3 py-3 text-sm font-semibold transition hover:border-[rgba(201,168,76,0.55)] hover:text-[var(--color-gold)]"
+                          >
+                            {letter}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
                 ))}
                 <input
                   inputMode="numeric"
                   pattern="[0-9]*"
                   placeholder="12345678"
                   value={registerDigits}
-                  onChange={(event) => onRegisterDigitsChange(event.target.value)}
+                  onChange={(event) =>
+                    onRegisterDigitsChange(event.target.value)
+                  }
                   className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:bg-[#22222E]"
                 />
               </div>
               <span className="text-[11px] text-[#5A5856]">
-                Эхний 2 тэмдэгтийг Монгол үсгээр сонгоод, арын хэсэгт зөвхөн тоо оруулна.
+                Эхний 2 тэмдэгтийг Монгол үсгээр сонгоод, арын хэсэгт зөвхөн тоо
+                оруулна.
               </span>
             </div>
           );
@@ -152,7 +183,9 @@ export const PersonalInfoStep = ({
               placeholder={field.placeholder}
               value={
                 formValues[
-                  personalFieldNames[field.label] as keyof DriverRegistrationValues
+                  personalFieldNames[
+                    field.label
+                  ] as keyof DriverRegistrationValues
                 ]
               }
               onChange={onFieldChange}
@@ -193,7 +226,9 @@ export const PersonalInfoStep = ({
           htmlFor="profilePhoto"
           className="block cursor-pointer rounded-[16px] border border-dashed border-[rgba(201,168,76,0.25)] bg-[var(--color-panel)] px-6 py-10 text-center transition hover:border-[rgba(201,168,76,0.5)] hover:bg-[#22222E]"
         >
-          <div className="text-3xl">{uploadFiles.profilePhoto ? "✅" : "🖼️"}</div>
+          <div className="text-3xl">
+            {uploadFiles.profilePhoto ? "✅" : "🖼️"}
+          </div>
           <div className="mt-3 text-sm font-medium">
             {uploadFiles.profilePhoto
               ? uploadFiles.profilePhoto.name
@@ -351,7 +386,9 @@ export const DocumentInfoStep = ({
             key={slot.title}
             className="cursor-pointer rounded-[16px] border border-dashed border-[rgba(201,168,76,0.2)] bg-[var(--color-panel)] px-4 py-8 text-center transition hover:border-[rgba(201,168,76,0.45)] hover:bg-[#22222E]"
           >
-            <div className="text-3xl">{uploadFiles[slot.id] ? "✅" : slot.icon}</div>
+            <div className="text-3xl">
+              {uploadFiles[slot.id] ? "✅" : slot.icon}
+            </div>
             <div className="mt-2 text-sm font-medium">{slot.title}</div>
             <div className="mt-1 text-[11px] text-[var(--color-muted)]">
               {uploadFiles[slot.id]
@@ -543,7 +580,9 @@ export const CarInfoStep = ({
             key={slot.title}
             className="cursor-pointer rounded-[16px] border border-dashed border-[rgba(201,168,76,0.2)] bg-[var(--color-panel)] px-4 py-8 text-center transition hover:border-[rgba(201,168,76,0.45)] hover:bg-[#22222E]"
           >
-            <div className="text-3xl">{uploadFiles[slot.id] ? "✅" : slot.icon}</div>
+            <div className="text-3xl">
+              {uploadFiles[slot.id] ? "✅" : slot.icon}
+            </div>
             <div className="mt-2 text-sm font-medium">{slot.title}</div>
             <div className="mt-1 text-[11px] text-[var(--color-muted)]">
               {uploadFiles[slot.id]

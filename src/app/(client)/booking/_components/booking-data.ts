@@ -1,6 +1,6 @@
 export const searchDefaults = {
-  startDate: "2026-03-25",
-  endDate: "2026-03-28",
+  startDate: "",
+  endDate: "",
   direction: "Улаанбаатар → Хөвсгөл",
   seats: "7-8",
   priceMax: 300000,

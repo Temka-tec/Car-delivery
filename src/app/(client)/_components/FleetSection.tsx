@@ -9,7 +9,7 @@ const iconShellClasses =
 export const FleetSection = async () => {
   const { userId } = await auth();
   const isSignedIn = Boolean(userId);
-  const cars = await getAvailableCars(6);
+  const cars = await getAvailableCars(6, userId);
 
   return (
     <section id="cars" className="px-4 py-14 sm:px-6 lg:px-10">
