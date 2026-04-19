@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getAvailableCars } from "@/lib/car-data";
@@ -37,9 +38,21 @@ export const FleetSection = async () => {
               className="overflow-hidden rounded-[20px] border border-white/8 bg-[var(--color-surface)] transition hover:-translate-y-1 hover:border-[rgba(201,168,76,0.25)]"
             >
               <div className={`${iconShellClasses} relative`}>
-                <div className="font-display text-4xl font-extrabold tracking-[0.12em] text-white/80">
-                  {car.icon}
-                </div>
+                {car.heroImage ? (
+                  <Image
+                    src={car.heroImage}
+                    alt={car.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="font-display text-4xl font-extrabold tracking-[0.12em] text-white/80">
+                    {car.icon}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
                 <div
                   className={`absolute right-3 top-3 rounded-md px-2.5 py-1 text-[10px] tracking-[0.04em] ${car.badgeClassName}`}
                 >

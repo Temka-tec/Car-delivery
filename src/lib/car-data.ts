@@ -7,6 +7,8 @@ export type CarListItem = {
   id: string;
   slug: string;
   icon: string;
+  photos: string[];
+  heroImage: string | null;
   badge: string;
   badgeClassName: string;
   name: string;
@@ -49,6 +51,9 @@ export type CarDetailsItem = CarListItem & {
 };
 
 const formatPriceLabel = (value: number) => `₮${value.toLocaleString()}`;
+
+const isStoredImagePath = (value: string | null | undefined): value is string =>
+  Boolean(value?.startsWith("/uploads/"));
 
 const titleCase = (value: string) =>
   value
@@ -130,6 +135,8 @@ const mapCarRecord = (car: Awaited<ReturnType<typeof getCarsRaw>>[number]): CarL
     id: car.id,
     slug: car.slug,
     icon: shortCode,
+    photos: car.photos.filter(isStoredImagePath),
+    heroImage: car.photos.find(isStoredImagePath) || null,
     badge,
     badgeClassName:
       car.status === "AVAILABLE"
@@ -232,8 +239,8 @@ export async function getCarDetailsBySlug(slug: string): Promise<CarDetailsItem 
   return {
     ...base,
     gallery:
-      car.photos.length > 0
-        ? car.photos.slice(0, 4)
+      base.photos.length > 0
+        ? base.photos.slice(0, 4)
         : [base.icon, base.year, `${car.seats} суудал`, base.location],
     features: formatFeatureGrid(car),
     reviews,

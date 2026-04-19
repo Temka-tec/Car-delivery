@@ -11,7 +11,7 @@ export default async function AuthRedirectPage() {
   }
 
   if (viewer.isAdmin) {
-    redirect("/admin/driver-applications");
+    redirect("/");
   }
 
   if (viewer.isDriver || viewer.hasDriverApplication) {

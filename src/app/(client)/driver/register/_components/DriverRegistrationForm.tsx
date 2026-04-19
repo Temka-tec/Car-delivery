@@ -82,7 +82,6 @@ export const DriverRegistrationForm = () => {
       plateNumber: "1234 УНА",
       seatCount: "7",
       transmission: "Автомат",
-      enginePower: "3.5L",
       dailyRate: "250000",
       carNotes:
         "Арьсан салон, 2 люк, халаагууртай суудал, хот болон хөдөө чиглэлд явах боломжтой.",
@@ -104,6 +103,36 @@ export const DriverRegistrationForm = () => {
       ...current,
       [name]: value,
     }));
+  };
+
+  const handleRegisterPrefixChange = (index: 0 | 1, letter: string) => {
+    setFormValues((current) => {
+      const prefix = current.registerNumber
+        .slice(0, 2)
+        .padEnd(2, "")
+        .split("");
+      const digits = current.registerNumber.slice(2).replace(/\D/g, "").slice(0, 8);
+
+      prefix[index] = letter;
+
+      return {
+        ...current,
+        registerNumber: `${prefix.join("")}${digits}`,
+      };
+    });
+  };
+
+  const handleRegisterDigitsChange = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+
+    setFormValues((current) => {
+      const prefix = current.registerNumber.slice(0, 2);
+
+      return {
+        ...current,
+        registerNumber: `${prefix}${digits}`,
+      };
+    });
   };
 
   const handleUploadChange = (
@@ -186,6 +215,8 @@ export const DriverRegistrationForm = () => {
               formValues={formValues}
               uploadFiles={uploadFiles}
               onFieldChange={handleFieldChange}
+              onRegisterPrefixChange={handleRegisterPrefixChange}
+              onRegisterDigitsChange={handleRegisterDigitsChange}
               onUploadChange={handleUploadChange}
               onApplyDemo={applyPersonalDemo}
             />

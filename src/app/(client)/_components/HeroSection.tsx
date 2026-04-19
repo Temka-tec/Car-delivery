@@ -6,6 +6,11 @@ import { stats } from "./landing-data";
 
 export const HeroSection = async () => {
   const viewer = await getCurrentViewer();
+  const canApplyAsDriver =
+    viewer.isSignedIn &&
+    !viewer.isAdmin &&
+    !viewer.isDriver &&
+    !viewer.hasDriverApplication;
 
   return (
     <section className="relative overflow-hidden border-b border-white/8 bg-[linear-gradient(135deg,#0A0A0F_0%,#12121A_50%,#0F0F18_100%)] px-4 py-16 sm:px-6 lg:px-10 lg:py-28">
@@ -57,12 +62,12 @@ export const HeroSection = async () => {
             >
               Хүсэлтийн төлөв
             </Link>
-          ) : (
+          ) : canApplyAsDriver ? (
             <DriverRegistrationDialog
               label="Жолоочийн хүсэлт өгөх"
               className="rounded-xl border border-white/15 px-6 py-4 text-center text-sm font-medium text-[var(--color-text)] transition hover:border-[rgba(201,168,76,0.4)] hover:text-[var(--color-gold)] sm:px-8"
             />
-          )}
+          ) : null}
         </div>
 
         <div className="mt-12 grid gap-6 border-t border-white/8 pt-8 sm:grid-cols-2 lg:grid-cols-4">

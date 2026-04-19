@@ -6,6 +6,11 @@ import { driverSteps } from "./landing-data";
 
 export const DriverCTA = async () => {
   const viewer = await getCurrentViewer();
+  const canApplyAsDriver =
+    viewer.isSignedIn &&
+    !viewer.isAdmin &&
+    !viewer.isDriver &&
+    !viewer.hasDriverApplication;
 
   return (
     <section id="drivers" className="px-4 py-14 sm:px-6 lg:px-10">
@@ -49,12 +54,12 @@ export const DriverCTA = async () => {
                 >
                   Хүсэлтийн төлөв
                 </Link>
-              ) : (
+              ) : canApplyAsDriver ? (
                 <DriverRegistrationDialog
                   label="Жолоочийн хүсэлт →"
                   className="rounded-lg bg-[var(--color-gold)] px-5 py-3 text-center text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
                 />
-              )}
+              ) : null}
               {!viewer.isSignedIn ? (
                 <Link
                   href="/sign-in"

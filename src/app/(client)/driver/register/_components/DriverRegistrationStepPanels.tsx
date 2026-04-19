@@ -8,6 +8,7 @@ import {
 import {
   acceptedImageTypes,
   formatFileSize,
+  mongolianRegisterLetters,
   personalFieldNames,
   sectionTitleClasses,
 } from "./driver-registration-types";
@@ -27,6 +28,12 @@ type StepSharedProps = {
     field: UploadFieldName,
     event: ChangeEvent<HTMLInputElement>,
   ) => void;
+};
+
+type PersonalStepProps = StepSharedProps & {
+  onRegisterPrefixChange: (index: 0 | 1, letter: string) => void;
+  onRegisterDigitsChange: (value: string) => void;
+  onApplyDemo: () => void;
 };
 
 type StepProps = StepSharedProps & {
@@ -55,9 +62,17 @@ export const PersonalInfoStep = ({
   formValues,
   uploadFiles,
   onFieldChange,
+  onRegisterPrefixChange,
+  onRegisterDigitsChange,
   onUploadChange,
   onApplyDemo,
-}: StepProps) => {
+}: PersonalStepProps) => {
+  const registerPrefix = formValues.registerNumber.slice(0, 2).padEnd(2, "");
+  const registerDigits = formValues.registerNumber
+    .slice(2)
+    .replace(/\D/g, "")
+    .slice(0, 8);
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <DemoButton label="Demo мэдээлэл оруулах" onClick={onApplyDemo} />
@@ -71,34 +86,84 @@ export const PersonalInfoStep = ({
         </div>
       </div>
 
-      {personalFields.map((field) => (
-        <label
-          key={field.label}
-          className="flex flex-col gap-1.5 text-sm md:col-auto"
-        >
-          <span className="text-xs font-medium text-[var(--color-muted)]">
-            {field.label}{" "}
-            {field.required ? (
-              <span className="text-[var(--color-gold)]">*</span>
+      {personalFields.map((field) => {
+        if (field.label === "Регистрийн дугаар") {
+          return (
+            <div
+              key={field.label}
+              className="flex flex-col gap-1.5 text-sm md:col-auto"
+            >
+              <span className="text-xs font-medium text-[var(--color-muted)]">
+                {field.label} <span className="text-[var(--color-gold)]">*</span>
+              </span>
+              <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1.6fr]">
+                {[0, 1].map((index) => (
+                  <details key={index} className="group relative">
+                    <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition group-open:border-[rgba(201,168,76,0.45)]">
+                      <span className="text-base font-semibold">
+                        {registerPrefix[index] || "Үсэг"}
+                      </span>
+                      <span className="text-xs text-[var(--color-muted)]">Сонгох</span>
+                    </summary>
+                    <div className="absolute z-20 mt-2 grid max-h-56 w-full grid-cols-4 gap-2 overflow-y-auto rounded-2xl border border-white/8 bg-[#191923] p-3 shadow-2xl">
+                      {mongolianRegisterLetters.map((letter) => (
+                        <button
+                          key={`${index}-${letter}`}
+                          type="button"
+                          onClick={() => onRegisterPrefixChange(index as 0 | 1, letter)}
+                          className="rounded-lg border border-white/8 bg-[var(--color-panel)] px-2 py-2 text-sm font-medium transition hover:border-[rgba(201,168,76,0.45)] hover:text-[var(--color-gold)]"
+                        >
+                          {letter}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+                ))}
+                <input
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="12345678"
+                  value={registerDigits}
+                  onChange={(event) => onRegisterDigitsChange(event.target.value)}
+                  className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:bg-[#22222E]"
+                />
+              </div>
+              <span className="text-[11px] text-[#5A5856]">
+                Эхний 2 тэмдэгтийг Монгол үсгээр сонгоод, арын хэсэгт зөвхөн тоо оруулна.
+              </span>
+            </div>
+          );
+        }
+
+        return (
+          <label
+            key={field.label}
+            className="flex flex-col gap-1.5 text-sm md:col-auto"
+          >
+            <span className="text-xs font-medium text-[var(--color-muted)]">
+              {field.label}{" "}
+              {field.required ? (
+                <span className="text-[var(--color-gold)]">*</span>
+              ) : null}
+            </span>
+            <input
+              name={personalFieldNames[field.label]}
+              type={field.type}
+              placeholder={field.placeholder}
+              value={
+                formValues[
+                  personalFieldNames[field.label] as keyof DriverRegistrationValues
+                ]
+              }
+              onChange={onFieldChange}
+              className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:bg-[#22222E]"
+            />
+            {field.hint ? (
+              <span className="text-[11px] text-[#5A5856]">{field.hint}</span>
             ) : null}
-          </span>
-          <input
-            name={personalFieldNames[field.label]}
-            type={field.type}
-            placeholder={field.placeholder}
-            value={
-              formValues[
-                personalFieldNames[field.label] as keyof DriverRegistrationValues
-              ]
-            }
-            onChange={onFieldChange}
-            className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:bg-[#22222E]"
-          />
-          {field.hint ? (
-            <span className="text-[11px] text-[#5A5856]">{field.hint}</span>
-          ) : null}
-        </label>
-      ))}
+          </label>
+        );
+      })}
 
       <label className="flex flex-col gap-1.5 md:col-span-2">
         <span className="text-xs font-medium text-[var(--color-muted)]">
@@ -435,32 +500,6 @@ export const CarInfoStep = ({
       </label>
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--color-muted)]">
-          Хурдны хайрцаг
-        </span>
-        <select
-          name="transmission"
-          value={formValues.transmission}
-          onChange={onFieldChange}
-          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
-        >
-          <option>Автомат</option>
-          <option>Механик</option>
-        </select>
-      </label>
-      <label className="flex flex-col gap-1.5">
-        <span className="text-xs font-medium text-[var(--color-muted)]">
-          Хөдөлгүүрийн хүч
-        </span>
-        <input
-          name="enginePower"
-          placeholder="2.0L, 3.5L..."
-          value={formValues.enginePower}
-          onChange={onFieldChange}
-          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
-        />
-      </label>
-      <label className="flex flex-col gap-1.5">
-        <span className="text-xs font-medium text-[var(--color-muted)]">
           Өдрийн үнэ (₮) <span className="text-[var(--color-gold)]">*</span>
         </span>
         <input
@@ -472,6 +511,20 @@ export const CarInfoStep = ({
           onChange={onFieldChange}
           className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
         />
+      </label>
+      <label className="flex flex-col gap-1.5">
+        <span className="text-xs font-medium text-[var(--color-muted)]">
+          Хурдны хайрцаг
+        </span>
+        <select
+          name="transmission"
+          value={formValues.transmission}
+          onChange={onFieldChange}
+          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+        >
+          <option>Автомат</option>
+          <option>Механик</option>
+        </select>
       </label>
 
       <div className={`${sectionTitleClasses} mt-4 md:col-span-2`}>

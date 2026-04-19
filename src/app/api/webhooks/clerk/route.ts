@@ -1,5 +1,7 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
+import { Role } from "@/generated/prisma/client";
+import { isAdminEmail } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -52,18 +54,22 @@ export async function POST(req: Request) {
       return new Response("Хэрэглэгчийн имэйл дутуу байна.", { status: 400 });
     }
 
+    const shouldBeAdmin = isAdminEmail(primaryEmail);
+
     await prisma.user.upsert({
       where: { clerkId: evt.data.id },
       update: {
         email: primaryEmail,
         name,
         phone,
+        ...(shouldBeAdmin ? { role: Role.ADMIN } : {}),
       },
       create: {
         clerkId: evt.data.id,
         email: primaryEmail,
         name,
         phone,
+        role: shouldBeAdmin ? Role.ADMIN : Role.USER,
       },
     });
   }

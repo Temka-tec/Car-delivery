@@ -21,7 +21,6 @@ export type DriverRegistrationValues = {
   plateNumber: string;
   seatCount: string;
   transmission: string;
-  enginePower: string;
   dailyRate: string;
   carNotes: string;
 };
@@ -76,10 +75,47 @@ export const initialFormValues: DriverRegistrationValues = {
   plateNumber: "",
   seatCount: "4",
   transmission: "Автомат",
-  enginePower: "",
   dailyRate: "",
   carNotes: "",
 };
+
+export const mongolianRegisterLetters = [
+  "А",
+  "Б",
+  "В",
+  "Г",
+  "Д",
+  "Е",
+  "Ё",
+  "Ж",
+  "З",
+  "И",
+  "Й",
+  "К",
+  "Л",
+  "М",
+  "Н",
+  "О",
+  "Ө",
+  "П",
+  "Р",
+  "С",
+  "Т",
+  "У",
+  "Ү",
+  "Ф",
+  "Х",
+  "Ц",
+  "Ч",
+  "Ш",
+  "Щ",
+  "Ъ",
+  "Ы",
+  "Ь",
+  "Э",
+  "Ю",
+  "Я",
+] as const;
 
 export const initialUploadFiles: UploadFiles = {
   profilePhoto: null,

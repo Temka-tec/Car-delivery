@@ -37,7 +37,7 @@ export const personalFields = [
   {
     label: "Регистрийн дугаар",
     required: true,
-    placeholder: "УА12345678",
+    placeholder: "",
     type: "text",
     hint: "",
   },

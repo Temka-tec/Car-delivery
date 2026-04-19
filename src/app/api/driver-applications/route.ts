@@ -1,4 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { randomUUID } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { Prisma } from "@/generated/prisma/client";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
@@ -47,6 +50,20 @@ const uploadFieldLabels = {
 } as const;
 
 const maxUploadSize = 5 * 1024 * 1024;
+const uploadDir = path.join(
+  process.cwd(),
+  "public",
+  "uploads",
+  "driver-applications",
+);
+
+const mimeExtensionMap: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+  "image/gif": ".gif",
+  "image/avif": ".avif",
+};
 
 const escapeHtml = (value: string) =>
   value
@@ -70,6 +87,24 @@ const formatBytes = (value: number) => {
 const isMissingTableError = (error: unknown) =>
   error instanceof Prisma.PrismaClientKnownRequestError &&
   error.code === "P2021";
+
+const sanitizeFileName = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\w.-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+const getFileExtension = (file: File) => {
+  const fileExtension = path.extname(file.name).toLowerCase();
+
+  if (fileExtension) {
+    return fileExtension;
+  }
+
+  return mimeExtensionMap[file.type] || ".jpg";
+};
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -115,8 +150,10 @@ export async function POST(req: Request) {
   }
 
   let attachmentEntries: Array<{
+    field: string;
     label: string;
     originalName: string;
+    storedPath: string;
     size: number;
     attachment: {
       filename: string;
@@ -126,6 +163,11 @@ export async function POST(req: Request) {
   }>;
 
   try {
+    const uploadBatchDir = new Date().toISOString().slice(0, 10);
+    const absoluteBatchDir = path.join(uploadDir, uploadBatchDir);
+
+    await mkdir(absoluteBatchDir, { recursive: true });
+
     attachmentEntries = await Promise.all(
       Object.entries(uploadFieldLabels).map(async ([field, label]) => {
         const file = formData.get(field);
@@ -142,13 +184,23 @@ export async function POST(req: Request) {
           throw new Error(`${label} 5MB-аас ихгүй байх ёстой.`);
         }
 
+        const fileExtension = getFileExtension(file);
+        const baseName = sanitizeFileName(path.basename(file.name, fileExtension));
+        const storedFileName = `${field}-${randomUUID()}-${baseName || "upload"}${fileExtension}`;
+        const relativePath = `/uploads/driver-applications/${uploadBatchDir}/${storedFileName}`;
+        const fileBuffer = Buffer.from(await file.arrayBuffer());
+
+        await writeFile(path.join(absoluteBatchDir, storedFileName), fileBuffer);
+
         return {
+          field,
           label,
           originalName: file.name,
+          storedPath: relativePath,
           size: file.size,
           attachment: {
             filename: file.name,
-            content: Buffer.from(await file.arrayBuffer()),
+            content: fileBuffer,
             contentType: file.type,
           },
         };
@@ -233,33 +285,24 @@ export async function POST(req: Request) {
         dailyRate: Number(body.dailyRate),
         carNotes: body.carNotes || null,
         profilePhotoName:
-          attachmentEntries.find(
-            (item) => item.label === uploadFieldLabels.profilePhoto,
-          )?.originalName || null,
+          attachmentEntries.find((item) => item.field === "profilePhoto")?.storedPath ||
+          null,
         licenseFrontName:
-          attachmentEntries.find(
-            (item) => item.label === uploadFieldLabels.licenseFront,
-          )?.originalName || null,
+          attachmentEntries.find((item) => item.field === "licenseFront")?.storedPath ||
+          null,
         licenseBackName:
-          attachmentEntries.find(
-            (item) => item.label === uploadFieldLabels.licenseBack,
-          )?.originalName || null,
+          attachmentEntries.find((item) => item.field === "licenseBack")?.storedPath ||
+          null,
         licenseSelfieName:
-          attachmentEntries.find(
-            (item) => item.label === uploadFieldLabels.licenseSelfie,
-          )?.originalName || null,
+          attachmentEntries.find((item) => item.field === "licenseSelfie")?.storedPath ||
+          null,
         carFrontName:
-          attachmentEntries.find(
-            (item) => item.label === uploadFieldLabels.carFront,
-          )?.originalName || null,
+          attachmentEntries.find((item) => item.field === "carFront")?.storedPath || null,
         carBackName:
-          attachmentEntries.find(
-            (item) => item.label === uploadFieldLabels.carBack,
-          )?.originalName || null,
+          attachmentEntries.find((item) => item.field === "carBack")?.storedPath || null,
         carInteriorName:
-          attachmentEntries.find(
-            (item) => item.label === uploadFieldLabels.carInterior,
-          )?.originalName || null,
+          attachmentEntries.find((item) => item.field === "carInterior")?.storedPath ||
+          null,
       },
     });
   } catch (error) {

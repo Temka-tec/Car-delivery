@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import type { CarListItem } from "@/lib/car-data";
@@ -252,8 +253,20 @@ export const BookingExperience = ({
                         : "border-white/8"
                     }`}
                   >
-                    <div className="relative flex min-h-40 items-center justify-center bg-[linear-gradient(135deg,var(--color-panel),#1E1E2C)] text-6xl">
-                      {car.icon}
+                    <div className="relative flex min-h-40 items-center justify-center overflow-hidden bg-[linear-gradient(135deg,var(--color-panel),#1E1E2C)] text-6xl">
+                      {car.heroImage ? (
+                        <Image
+                          src={car.heroImage}
+                          alt={car.name}
+                          fill
+                          sizes="(max-width: 1280px) 100vw, 200px"
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        car.icon
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
                       <div
                         className={`absolute left-3 top-3 rounded-md border px-2 py-1 text-[10px] ${
                           car.premium
@@ -414,7 +427,22 @@ export const BookingExperience = ({
 
                 <div className="p-6">
                   <div className="mb-5 flex items-center gap-3 rounded-xl border border-white/8 bg-[var(--color-panel)] p-4">
-                    <div className="text-3xl">{selectedCar.icon}</div>
+                    <div className="relative h-16 w-20 overflow-hidden rounded-lg border border-white/8 bg-[linear-gradient(135deg,var(--color-panel),#1E1E2C)]">
+                      {selectedCar.heroImage ? (
+                        <Image
+                          src={selectedCar.heroImage}
+                          alt={selectedCar.name}
+                          fill
+                          sizes="80px"
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-3xl">
+                          {selectedCar.icon}
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <strong className="block text-sm font-medium">
                         {selectedCar.name}

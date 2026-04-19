@@ -3,7 +3,7 @@ import { Role } from "@/generated/prisma/client";
 import { slugify } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 
-const approvalSchema = ["APPROVED", "REJECTED", "REVIEWING"] as const;
+const approvalSchema = ["APPROVED", "REJECTED"] as const;
 type ApprovalStatus = (typeof approvalSchema)[number];
 
 const buildCarSlug = (
@@ -163,13 +163,6 @@ export async function PATCH(
       await tx.driverProfile.updateMany({
         where: { userId: application.userId },
         data: { status: "REJECTED" },
-      });
-    }
-
-    if (status === "REVIEWING") {
-      await tx.driverProfile.updateMany({
-        where: { userId: application.userId },
-        data: { status: "PENDING" },
       });
     }
   });

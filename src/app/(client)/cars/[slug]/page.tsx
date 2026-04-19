@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCarDetailsBySlug } from "@/lib/car-data";
@@ -41,9 +42,21 @@ export default async function CarDetailsPage({
         <div className="grid gap-6 xl:grid-cols-[1.35fr_420px]">
           <section>
             <div className="relative flex h-72 items-center justify-center overflow-hidden rounded-[24px] border border-white/8 bg-[linear-gradient(135deg,#1A1A26,#22222E)]">
-              <div className="font-display text-7xl font-extrabold tracking-[0.12em] text-white/80">
-                {car.icon}
-              </div>
+              {car.heroImage ? (
+                <Image
+                  src={car.heroImage}
+                  alt={car.name}
+                  fill
+                  sizes="(max-width: 1280px) 100vw, 66vw"
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="font-display text-7xl font-extrabold tracking-[0.12em] text-white/80">
+                  {car.icon}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
               <div className="absolute bottom-4 left-4 rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-xs text-[var(--color-muted)]">
                 {car.name} {car.year} · {car.color}
               </div>
@@ -53,13 +66,24 @@ export default async function CarDetailsPage({
               {car.gallery.map((item, index) => (
                 <div
                   key={`${car.slug}-${item}-${index}`}
-                  className={`flex h-16 items-center justify-center rounded-2xl border text-2xl ${
+                  className={`relative flex h-16 items-center justify-center overflow-hidden rounded-2xl border text-2xl ${
                     index === 0
                       ? "border-[rgba(201,168,76,0.4)] bg-[rgba(201,168,76,0.08)]"
                       : "border-white/8 bg-[var(--color-panel)]"
                   }`}
                 >
-                  {item}
+                  {item.startsWith("/") ? (
+                    <Image
+                      src={item}
+                      alt={`${car.name} зураг ${index + 1}`}
+                      fill
+                      sizes="25vw"
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    item
+                  )}
                 </div>
               ))}
             </div>

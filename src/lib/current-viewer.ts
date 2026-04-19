@@ -1,44 +1,11 @@
 import "server-only";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
-import type { Prisma } from "@/generated/prisma/client";
-import { Role } from "@/generated/prisma/enums";
+import { Role } from "@/generated/prisma/client";
+import { isAdminEmail } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 
-const currentViewerInclude = {
-  driverProfile: {
-    include: {
-      car: true,
-    },
-  },
-  driverApplications: {
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 1,
-  },
-} satisfies Prisma.UserInclude;
-
-type CurrentViewerUser = Prisma.UserGetPayload<{
-  include: typeof currentViewerInclude;
-}>;
-
-export type CurrentViewer = {
-  isSignedIn: boolean;
-  isDriver: boolean;
-  isAdmin: boolean;
-  hasDriverApplication: boolean;
-  clerkId: string | null;
-  user: CurrentViewerUser | null;
-  driverProfile: CurrentViewerUser["driverProfile"] | null;
-  latestDriverApplication:
-    | CurrentViewerUser["driverApplications"][number]
-    | null;
-  displayName: string | null;
-  displayEmail: string | null;
-};
-
-export const getCurrentViewer = async (): Promise<CurrentViewer> => {
+export const getCurrentViewer = async () => {
   const { userId } = await auth();
 
   if (!userId) {
@@ -56,17 +23,66 @@ export const getCurrentViewer = async (): Promise<CurrentViewer> => {
     };
   }
 
-  const [clerkUser, dbUser] = await Promise.all([
-    currentUser(),
-    prisma.user.findUnique({
-      where: { clerkId: userId },
-      include: currentViewerInclude,
-    }),
-  ]);
+  const clerkUser = await currentUser();
+
+  const primaryEmail = clerkUser?.primaryEmailAddress?.emailAddress || null;
+  const fallbackName =
+    clerkUser?.fullName ||
+    [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") ||
+    null;
+  const fallbackPhone = clerkUser?.phoneNumbers?.[0]?.phoneNumber || null;
+  const shouldBeAdmin = primaryEmail ? isAdminEmail(primaryEmail) : false;
+
+  const dbUser = primaryEmail
+    ? await prisma.user.upsert({
+        where: { clerkId: userId },
+        update: {
+          email: primaryEmail,
+          name: fallbackName,
+          phone: fallbackPhone,
+          ...(shouldBeAdmin ? { role: Role.ADMIN } : {}),
+        },
+        create: {
+          clerkId: userId,
+          email: primaryEmail,
+          name: fallbackName,
+          phone: fallbackPhone,
+          role: shouldBeAdmin ? Role.ADMIN : Role.USER,
+        },
+        include: {
+          driverProfile: {
+            include: {
+              car: true,
+            },
+          },
+          driverApplications: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            take: 1,
+          },
+        },
+      })
+    : await prisma.user.findUnique({
+        where: { clerkId: userId },
+        include: {
+          driverProfile: {
+            include: {
+              car: true,
+            },
+          },
+          driverApplications: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            take: 1,
+          },
+        },
+      });
 
   const latestDriverApplication = dbUser?.driverApplications[0] ?? null;
   const isDriver =
-    dbUser?.role === Role.DRIVER || dbUser?.driverProfile?.status === "APPROVED";
+    dbUser?.role === "DRIVER" || dbUser?.driverProfile?.status === "APPROVED";
   const hasDriverApplication = Boolean(latestDriverApplication);
   const displayName =
     dbUser?.name ||
@@ -75,7 +91,8 @@ export const getCurrentViewer = async (): Promise<CurrentViewer> => {
     null;
   const displayEmail =
     dbUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || null;
-  const isAdmin = dbUser?.role === Role.ADMIN;
+  const isAdmin =
+    dbUser?.role === Role.ADMIN || (displayEmail ? isAdminEmail(displayEmail) : false);
 
   return {
     isSignedIn: true,
