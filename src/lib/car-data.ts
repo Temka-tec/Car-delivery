@@ -26,6 +26,7 @@ export type CarListItem = {
   engine: string;
   insurance: string;
   driver: {
+    id: string | null;
     initial: string;
     name: string;
     detail: string;
@@ -89,7 +90,6 @@ const formatFeatureGrid = (car: {
   seats: number;
   transmission: string;
   enginePower: string | null;
-  insurance: string | null;
   features: string[];
 }) => {
   const coreFeatures = [
@@ -99,11 +99,6 @@ const formatFeatureGrid = (car: {
       label: "Хөдөлгүүр",
       value: car.enginePower || "Мэдээлэлгүй",
       icon: "🛢️",
-    },
-    {
-      label: "Даатгал",
-      value: car.insurance || "Мэдээлэлгүй",
-      icon: "🛡️",
     },
   ];
 
@@ -125,8 +120,16 @@ const mapCarRecord = (car: Awaited<ReturnType<typeof getCarsRaw>>[number]): CarL
     reviewCount > 0
       ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
       : 0;
-  const driverName = car.driver?.user.name || "Жолооч удахгүй";
-  const driverPhone = car.driver?.user.phone || "Утас удахгүй";
+  const latestApplication = car.driver?.user.driverApplications[0] ?? null;
+  const driverName =
+    car.driver?.user.name ||
+    [latestApplication?.lastName, latestApplication?.firstName]
+      .filter(Boolean)
+      .join(" ")
+      .trim() ||
+    "Жолооч удахгүй";
+  const driverPhone =
+    car.driver?.user.phone || latestApplication?.phone || "Утас удахгүй";
   const driverExperience = car.driver?.experience || "Туршлага удахгүй";
   const driverClass = car.driver?.licenseClass || "Ангилал удахгүй";
   const shortCode = titleCase(car.model).slice(0, 3).toUpperCase() || "CAR";
@@ -158,6 +161,7 @@ const mapCarRecord = (car: Awaited<ReturnType<typeof getCarsRaw>>[number]): CarL
     engine: car.enginePower || "Мэдээлэлгүй",
     insurance: car.insurance || "Мэдээлэлгүй",
     driver: {
+      id: car.driver?.id || null,
       initial: initialsFromName(driverName),
       name: driverName,
       detail: `${driverClass} · ${driverExperience}`,
@@ -201,7 +205,16 @@ async function getCarsRaw(options?: {
       include: {
         driver: {
           include: {
-            user: true,
+            user: {
+              include: {
+                driverApplications: {
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                  take: 1,
+                },
+              },
+            },
           },
         },
         bookings: {

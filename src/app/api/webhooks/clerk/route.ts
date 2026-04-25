@@ -55,19 +55,40 @@ export async function POST(req: Request) {
     }
 
     const shouldBeAdmin = isAdminEmail(primaryEmail);
+    const existingUser = await prisma.user.findUnique({
+      where: { clerkId: evt.data.id },
+      select: {
+        name: true,
+        driverProfile: {
+          select: {
+            id: true,
+          },
+        },
+        driverApplications: {
+          select: {
+            id: true,
+          },
+          take: 1,
+        },
+      },
+    });
+    const preserveCustomName =
+      Boolean(existingUser?.name) &&
+      Boolean(existingUser?.driverProfile || existingUser?.driverApplications.length);
+    const nextName = preserveCustomName ? existingUser?.name ?? null : name;
 
     await prisma.user.upsert({
       where: { clerkId: evt.data.id },
       update: {
         email: primaryEmail,
-        name,
+        name: nextName,
         phone,
         ...(shouldBeAdmin ? { role: Role.ADMIN } : {}),
       },
       create: {
         clerkId: evt.data.id,
         email: primaryEmail,
-        name,
+        name: nextName,
         phone,
         role: shouldBeAdmin ? Role.ADMIN : Role.USER,
       },

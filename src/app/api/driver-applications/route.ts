@@ -237,6 +237,8 @@ export async function POST(req: Request) {
   const clerkEmail =
     user?.primaryEmailAddress?.emailAddress || body.email || "Unknown";
   const applicantEmail = body.email?.toString().trim() || clerkEmail;
+  const applicationFullName =
+    [body.lastName, body.firstName].filter(Boolean).join(" ").trim() || null;
   try {
     const primaryEmail =
       user?.primaryEmailAddress?.emailAddress || body.email || `${userId}@clerk.local`;
@@ -246,13 +248,13 @@ export async function POST(req: Request) {
       },
       update: {
         email: primaryEmail,
-        name: clerkName === "Unknown" ? null : clerkName,
+        name: applicationFullName,
         phone: body.phone || user?.phoneNumbers?.[0]?.phoneNumber || null,
       },
       create: {
         clerkId: userId,
         email: primaryEmail,
-        name: clerkName === "Unknown" ? null : clerkName,
+        name: applicationFullName ?? (clerkName === "Unknown" ? null : clerkName),
         phone: body.phone || user?.phoneNumbers?.[0]?.phoneNumber || null,
       },
     });

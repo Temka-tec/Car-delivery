@@ -66,7 +66,15 @@ export async function PATCH(
     if (status === "APPROVED") {
       await tx.user.update({
         where: { id: application.userId },
-        data: { role: Role.DRIVER },
+        data: {
+          role: Role.DRIVER,
+          name:
+            [application.lastName, application.firstName]
+              .filter(Boolean)
+              .join(" ")
+              .trim() || null,
+          phone: application.phone || null,
+        },
       });
 
       const driverProfile = await tx.driverProfile.upsert({

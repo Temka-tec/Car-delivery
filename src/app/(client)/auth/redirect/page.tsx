@@ -1,22 +1,58 @@
-import { redirect } from "next/navigation";
-import { getCurrentViewer } from "@/lib/current-viewer";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export default async function AuthRedirectPage() {
-  const viewer = await getCurrentViewer();
+export default function AuthRedirectPage() {
+  const { isLoaded, userId } = useAuth();
+  const router = useRouter();
 
-  if (!viewer.isSignedIn) {
-    redirect("/sign-in");
-  }
+  useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
 
-  if (viewer.isAdmin) {
-    redirect("/");
-  }
+    if (!userId) {
+      router.replace("/sign-in");
+      return;
+    }
 
-  if (viewer.isDriver || viewer.hasDriverApplication) {
-    redirect("/driver/dashboard");
-  }
+    const controller = new AbortController();
 
-  redirect("/");
+    const resolveRedirect = async () => {
+      try {
+        const response = await fetch("/api/auth/redirect-target", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          router.replace("/");
+          return;
+        }
+
+        const data = (await response.json()) as { target?: string };
+        router.replace(data.target || "/");
+      } catch (error) {
+        if ((error as { name?: string }).name !== "AbortError") {
+          router.replace("/");
+        }
+      }
+    };
+
+    void resolveRedirect();
+
+    return () => {
+      controller.abort();
+    };
+  }, [isLoaded, router, userId]);
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] px-6 py-10 text-[var(--color-text)]">
+      <div className="rounded-2xl border border-white/8 bg-[var(--color-surface)] px-6 py-5 text-sm text-[var(--color-muted)]">
+        Нэвтрэлтийн мэдээллийг шалгаж байна...
+      </div>
+    </main>
+  );
 }

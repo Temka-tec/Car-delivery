@@ -2,16 +2,24 @@
 
 import Link from "next/link";
 import { SignIn, useAuth } from "@clerk/nextjs";
-import { redirect, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 export default function SignInPage() {
   const { isLoaded, userId } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const compactMode = searchParams.get("compact") === "1";
   const redirectUrl = searchParams.get("redirect_url") || "/auth/redirect";
 
+  useEffect(() => {
+    if (isLoaded && userId) {
+      router.replace(redirectUrl);
+    }
+  }, [isLoaded, redirectUrl, router, userId]);
+
   if (isLoaded && userId) {
-    redirect(redirectUrl);
+    return null;
   }
 
   if (compactMode) {

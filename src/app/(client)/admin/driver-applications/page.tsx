@@ -1,8 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Prisma } from "@/generated/prisma/client";
 
 import { AdminApplicationActions } from "./_components/AdminApplicationActions";
+import { AdminApplicationGallery } from "./_components/AdminApplicationGallery";
 import { getCurrentViewer } from "@/lib/current-viewer";
 import { prisma } from "@/lib/prisma";
 
@@ -43,9 +44,6 @@ const carImageLabels = {
   carInteriorName: "Дотор зураг",
 } as const;
 
-const isStoredImagePath = (value: string | null | undefined) =>
-  Boolean(value?.startsWith("/uploads/"));
-
 const normalizeStatusFilter = (
   value: string | string[] | undefined,
 ): StatusTabKey => {
@@ -74,12 +72,16 @@ export default async function AdminDriverApplicationsPage({
   const { status } = await searchParams;
   const activeTab = normalizeStatusFilter(status);
 
-  const where =
+  const where: Prisma.DriverApplicationWhereInput =
     activeTab === "approved"
       ? { status: "APPROVED" as const }
       : activeTab === "rejected"
         ? { status: "REJECTED" as const }
-        : { status: { in: ["PENDING", "REVIEWING"] as const } };
+        : {
+            status: {
+              in: ["PENDING", "REVIEWING"],
+            },
+          };
 
   const [applications, newCount, approvedCount, rejectedCount] =
     await Promise.all([
@@ -193,13 +195,21 @@ export default async function AdminDriverApplicationsPage({
                 label: carImageLabels.carInteriorName,
                 value: application.carInteriorName,
               },
-            ].filter((item): item is { key: string; label: string; value: string } =>
-              Boolean(item.value),
+            ].filter(
+              (
+                item,
+              ): item is {
+                key: string;
+                label: (typeof carImageLabels)[keyof typeof carImageLabels];
+                value: string;
+              } => Boolean(item.value),
             );
 
-            const coverImage = carImages[0] ?? null;
-            const coverImageIsStored = isStoredImagePath(coverImage?.value);
             const isDecisionTab = activeTab !== "new";
+            const driverName =
+              [application.firstName, application.lastName].filter(Boolean).join(" ") ||
+              "Нэргүй";
+            const driverPhone = application.phone || "Утас оруулаагүй";
 
             return (
               <section
@@ -263,115 +273,13 @@ export default async function AdminDriverApplicationsPage({
                 </div>
 
                 <div className="mt-4 grid gap-4 lg:grid-cols-[1.35fr_0.95fr]">
-                  <div className="rounded-[24px] border border-[rgba(201,168,76,0.18)] bg-[linear-gradient(145deg,rgba(201,168,76,0.14),rgba(255,255,255,0.02))] p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.18em] text-[var(--color-gold)]">
-                          Машины зургууд
-                        </div>
-                        <h2 className="mt-3 font-display text-2xl font-bold tracking-[-0.04em]">
-                          {application.carMake} {application.carModel}
-                        </h2>
-                        <p className="mt-2 text-sm text-[var(--color-muted)]">
-                          Машинтай холбоотой upload хийсэн зургуудыг энд нэгтгэж
-                          харууллаа.
-                        </p>
-                      </div>
-                      <div className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-[var(--color-muted)]">
-                        {carImages.length} зураг
-                      </div>
-                    </div>
-
-                    <div className="mt-5 overflow-hidden rounded-[24px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(201,168,76,0.16),rgba(10,10,15,0.8))]">
-                      {coverImage && coverImageIsStored ? (
-                        <div className="relative h-72 w-full">
-                          <Image
-                            src={coverImage.value}
-                            alt={`${application.carMake} ${application.carModel} ${coverImage.label}`}
-                            fill
-                            sizes="(max-width: 1024px) 100vw, 66vw"
-                            className="object-cover"
-                            unoptimized
-                          />
-                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-5">
-                            <div className="text-xs text-[var(--color-gold)]">
-                              {coverImage.label}
-                            </div>
-                            <div className="mt-1 text-lg font-semibold text-white">
-                              {application.carMake} {application.carModel}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex min-h-52 flex-col justify-between gap-6 p-6">
-                          <div className="text-6xl leading-none">🚘</div>
-                          <div>
-                            <div className="text-xs text-[var(--color-gold)]">
-                              {coverImage?.label || "Машины үндсэн зураг"}
-                            </div>
-                            <div className="mt-2 text-lg font-semibold">
-                              {coverImage?.value || "Зураг оруулаагүй"}
-                            </div>
-                            <div className="mt-2 text-sm text-[var(--color-muted)]">
-                              {coverImage
-                                ? "Энэ бичлэг хуучин filename хадгалсан тул preview гарахгүй байна. Шинэ upload-ууд зураг болж харагдана."
-                                : "Энэ хүсэлт дээр машинтай холбоотой зураг хавсаргагдаагүй байна."}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      {[
-                        {
-                          label: carImageLabels.carFrontName,
-                          value: application.carFrontName,
-                          icon: "↗",
-                        },
-                        {
-                          label: carImageLabels.carBackName,
-                          value: application.carBackName,
-                          icon: "↘",
-                        },
-                        {
-                          label: carImageLabels.carInteriorName,
-                          value: application.carInteriorName,
-                          icon: "▣",
-                        },
-                      ].map((item) => (
-                        <div
-                          key={`${application.id}-${item.label}`}
-                          className="overflow-hidden rounded-2xl border border-white/8 bg-[var(--color-panel)]"
-                        >
-                          {item.value && isStoredImagePath(item.value) ? (
-                            <div className="relative h-40 w-full">
-                              <Image
-                                src={item.value}
-                                alt={`${application.carMake} ${application.carModel} ${item.label}`}
-                                fill
-                                sizes="(max-width: 640px) 100vw, 33vw"
-                                className="object-cover"
-                                unoptimized
-                              />
-                            </div>
-                          ) : (
-                            <div className="flex h-40 items-center justify-center bg-[linear-gradient(145deg,rgba(201,168,76,0.12),rgba(255,255,255,0.02))] text-3xl text-[var(--color-gold)]">
-                              {item.icon}
-                            </div>
-                          )}
-                          <div className="p-4">
-                            <div className="text-xs text-[var(--color-muted)]">
-                              {item.label}
-                            </div>
-                            <div className="mt-1 break-all text-sm font-medium">
-                              {item.value || "Оруулаагүй"}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <AdminApplicationGallery
+                    carMake={application.carMake}
+                    carModel={application.carModel}
+                    driverName={driverName}
+                    driverPhone={driverPhone}
+                    images={carImages}
+                  />
 
                   <div className="space-y-4">
                     <div className="rounded-xl border border-white/8 bg-[var(--color-panel)] p-4">

@@ -246,6 +246,9 @@ export default async function DriverDashboardPage() {
                         <div className="mt-2 text-xs text-[var(--color-muted)]">
                           {booking.destination || "Чиглэл оруулаагүй"}
                         </div>
+                        <div className="mt-1 text-xs text-[var(--color-muted)]">
+                          {booking.notes || "Дэлгэрэнгүй байршил оруулаагүй"}
+                        </div>
                       </div>
 
                       <div className="text-left sm:text-right">

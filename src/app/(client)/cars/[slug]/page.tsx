@@ -1,8 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { getCarDetailsBySlug } from "@/lib/car-data";
+import { parseLocationSelection } from "@/lib/mongolia-locations";
+import { CarImageGallery } from "./_components/CarImageGallery";
+import { CarDetailSidebar } from "./_components/CarDetailSidebar";
 
 export const dynamic = "force-dynamic";
 
@@ -21,9 +23,8 @@ export default async function CarDetailsPage({
     notFound();
   }
 
-  const serviceFee = Math.round(car.priceValue * 0.05);
-  const total = car.priceValue + serviceFee;
   const isOwnCar = Boolean(userId && car.ownerClerkId && userId === car.ownerClerkId);
+  const locationSelection = parseLocationSelection(car.location);
 
   return (
     <main className="min-h-screen bg-[var(--color-bg)] px-4 py-6 text-[var(--color-text)] sm:px-6 lg:px-8">
@@ -44,52 +45,14 @@ export default async function CarDetailsPage({
 
         <div className="grid gap-6 xl:grid-cols-[1.35fr_420px]">
           <section>
-            <div className="relative flex h-72 items-center justify-center overflow-hidden rounded-[24px] border border-white/8 bg-[linear-gradient(135deg,#1A1A26,#22222E)]">
-              {car.heroImage ? (
-                <Image
-                  src={car.heroImage}
-                  alt={car.name}
-                  fill
-                  sizes="(max-width: 1280px) 100vw, 66vw"
-                  className="object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="font-display text-7xl font-extrabold tracking-[0.12em] text-white/80">
-                  {car.icon}
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-xs text-[var(--color-muted)]">
-                {car.name} {car.year} · {car.color}
-              </div>
-            </div>
-
-            <div className="mt-3 grid grid-cols-4 gap-2">
-              {car.gallery.map((item, index) => (
-                <div
-                  key={`${car.slug}-${item}-${index}`}
-                  className={`relative flex h-16 items-center justify-center overflow-hidden rounded-2xl border text-2xl ${
-                    index === 0
-                      ? "border-[rgba(201,168,76,0.4)] bg-[rgba(201,168,76,0.08)]"
-                      : "border-white/8 bg-[var(--color-panel)]"
-                  }`}
-                >
-                  {item.startsWith("/") ? (
-                    <Image
-                      src={item}
-                      alt={`${car.name} зураг ${index + 1}`}
-                      fill
-                      sizes="25vw"
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    item
-                  )}
-                </div>
-              ))}
-            </div>
+            <CarImageGallery
+              carName={car.name}
+              carYear={car.year}
+              carColor={car.color}
+              heroImage={car.heroImage}
+              icon={car.icon}
+              gallery={car.gallery}
+            />
 
             <div className="mt-7">
               <h1 className="font-display text-3xl font-extrabold tracking-[-0.04em]">
@@ -135,7 +98,16 @@ export default async function CarDetailsPage({
                     {car.driver.initial}
                   </div>
                   <div>
-                    <div className="text-base font-semibold">{car.driver.name}</div>
+                    {car.driver.id ? (
+                      <Link
+                        href={`/drivers/${car.driver.id}`}
+                        className="text-base font-semibold transition hover:text-[var(--color-gold)]"
+                      >
+                        {car.driver.name}
+                      </Link>
+                    ) : (
+                      <div className="text-base font-semibold">{car.driver.name}</div>
+                    )}
                     <div className="text-sm text-[var(--color-muted)]">
                       {car.driver.detail}
                     </div>
@@ -155,9 +127,12 @@ export default async function CarDetailsPage({
                     <div className="text-[var(--color-muted)]">Аялал</div>
                   </div>
                   <div>
-                    <div className="font-display text-lg text-[var(--color-gold)]">
+                    <a
+                      href={`tel:${car.driver.phone.replaceAll(" ", "")}`}
+                      className="font-display text-lg text-[var(--color-gold)] transition hover:underline"
+                    >
                       {car.driver.phone}
-                    </div>
+                    </a>
                     <div className="text-[var(--color-muted)]">Утас</div>
                   </div>
                 </div>
@@ -171,7 +146,6 @@ export default async function CarDetailsPage({
               <div className="grid gap-3 sm:grid-cols-2">
                 {[
                   { label: "Байршил", value: car.location },
-                  { label: "Даатгал", value: car.insurance },
                   { label: "Хөдөлгүүр", value: car.engine },
                   { label: "Өдрийн үнэ", value: formatPrice(car.priceValue) },
                 ].map((item) => (
@@ -226,126 +200,13 @@ export default async function CarDetailsPage({
             </div>
           </section>
 
-          <aside className="h-fit rounded-[24px] border border-white/8 bg-[var(--color-surface)]">
-            <div className="border-b border-white/8 px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <span className="font-display text-3xl font-bold text-[var(--color-gold)]">
-                    {car.price}
-                  </span>
-                  <span className="ml-1 text-sm text-[var(--color-muted)]">
-                    / өдөр
-                  </span>
-                </div>
-                <div className="text-sm text-[var(--color-muted)]">
-                  ★ {car.rating.toFixed(1)} · {car.reviewCount}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4 p-5">
-              <div className="rounded-2xl border border-[rgba(96,165,250,0.22)] bg-[rgba(96,165,250,0.08)] p-4 text-sm leading-6 text-[var(--color-muted)]">
-                <div className="mb-1 font-medium text-[#60A5FA]">
-                  {car.location}
-                </div>
-                Энэ машин одоогоор {car.badge.toLowerCase()} төлөвтэй бөгөөд
-                жолоочийн мэдээлэл, үнэлгээ, өдрийн үнийн хамт шууд харагдана.
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                <label className="flex flex-col gap-1.5 text-sm text-[var(--color-muted)]">
-                  Эхлэх огноо
-                  <input
-                    type="date"
-                    className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-[var(--color-text)] outline-none"
-                  />
-                </label>
-                <label className="flex flex-col gap-1.5 text-sm text-[var(--color-muted)]">
-                  Дуусах огноо
-                  <input
-                    type="date"
-                    className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-[var(--color-text)] outline-none"
-                  />
-                </label>
-              </div>
-
-              <label className="flex flex-col gap-1.5 text-sm text-[var(--color-muted)]">
-                Чиглэл
-                <input
-                  defaultValue={car.location}
-                  type="text"
-                  className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-[var(--color-text)] outline-none"
-                />
-              </label>
-
-              <label className="flex flex-col gap-1.5 text-sm text-[var(--color-muted)]">
-                Зорчигчийн тоо
-                <select className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-[var(--color-text)] outline-none">
-                  <option>1-2 хүн</option>
-                  <option>3-4 хүн</option>
-                  <option>5-6 хүн</option>
-                  <option>7+ хүн</option>
-                </select>
-              </label>
-
-              <div className="rounded-2xl border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.06)] p-4 text-sm">
-                <div className="mb-2 flex items-center justify-between text-[var(--color-muted)]">
-                  <span>{formatPrice(car.priceValue)} × 1 өдөр</span>
-                  <span>{formatPrice(car.priceValue)}</span>
-                </div>
-                <div className="mb-2 flex items-center justify-between text-[var(--color-muted)]">
-                  <span>Үйлчилгээний хөлс (5%)</span>
-                  <span>{formatPrice(serviceFee)}</span>
-                </div>
-                <div className="flex items-center justify-between border-t border-[rgba(201,168,76,0.18)] pt-2 font-medium">
-                  <span>Нийт</span>
-                  <span className="font-display text-xl text-[var(--color-gold)]">
-                    {formatPrice(total)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-white/8 bg-[var(--color-panel)] p-4">
-                <div className="mb-2 text-xs uppercase tracking-[0.08em] text-[var(--color-muted)]">
-                  Шууд холбогдох
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-base font-semibold text-[#3ECF8E]">
-                    {car.driver.phone}
-                  </div>
-                  <a
-                    href={`tel:${car.driver.phone.replaceAll(" ", "")}`}
-                    className="rounded-lg border border-[rgba(62,207,142,0.35)] bg-[rgba(62,207,142,0.12)] px-3 py-2 text-sm text-[#3ECF8E]"
-                  >
-                    Залгах
-                  </a>
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                {isOwnCar ? (
-                  <div className="rounded-xl border border-[rgba(248,113,113,0.22)] bg-[rgba(248,113,113,0.08)] px-4 py-3 text-center text-sm font-medium text-[#FCA5A5]">
-                    Өөрийн нэмсэн машиныг өөрөө захиалах боломжгүй.
-                  </div>
-                ) : (
-                  <Link
-                    href="/booking"
-                    className="rounded-xl bg-[var(--color-gold)] px-4 py-3 text-center text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
-                  >
-                    Захиалга илгээх
-                  </Link>
-                )}
-                {!userId ? (
-                  <Link
-                    href="/sign-in"
-                    className="rounded-xl border border-[rgba(201,168,76,0.28)] px-4 py-3 text-center text-sm font-medium text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.08)]"
-                  >
-                    Нэвтэрч үргэлжлүүлэх
-                  </Link>
-                ) : null}
-              </div>
-            </div>
-          </aside>
+          <CarDetailSidebar
+            car={car}
+            initialAimag={locationSelection.aimag}
+            initialDestination={locationSelection.destination}
+            isOwnCar={isOwnCar}
+            userId={userId}
+          />
         </div>
       </div>
     </main>
