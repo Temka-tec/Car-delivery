@@ -1,9 +1,9 @@
 export const searchDefaults = {
   startDate: "",
   endDate: "",
-  direction: "Улаанбаатар → Хөвсгөл",
+  direction: "",
   seats: "7-8",
-  priceMax: 300000,
+  priceMax: 500000,
 };
 
 export const filterGroups = [

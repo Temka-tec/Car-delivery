@@ -56,11 +56,41 @@ const DemoButton = ({
     <button
       type="button"
       onClick={onClick}
-      className="rounded-full border border-[rgba(201,168,76,0.3)] px-4 py-2 text-xs font-medium text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.08)]"
+      className="btn-ripple-effect rounded-full border border-[rgba(201,168,76,0.3)] px-4 py-2 text-xs font-medium text-[var(--color-gold)] transition hover:bg-[rgba(201,168,76,0.08)]"
     >
       {label}
     </button>
   </div>
+);
+
+// date type-д float-label ажилладаггүй тул тусдаа label+input загвар
+const DateField = ({
+  id,
+  label,
+  required,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  required?: boolean;
+  value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+}) => (
+  <label className="flex flex-col gap-1.5 text-sm md:col-auto">
+    <span className="text-xs font-medium text-[var(--color-muted)]">
+      {label}{" "}
+      {required ? <span className="text-[var(--color-gold)]">*</span> : null}
+    </span>
+    <input
+      id={id}
+      name={id}
+      type="date"
+      value={value}
+      onChange={onChange}
+      className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:shadow-[0_0_0_3px_rgba(201,168,76,0.12)]"
+    />
+  </label>
 );
 
 export const PersonalInfoStep = ({
@@ -166,51 +196,59 @@ export const PersonalInfoStep = ({
           );
         }
 
-        return (
-          <label
-            key={field.label}
-            className="flex flex-col gap-1.5 text-sm md:col-auto"
-          >
-            <span className="text-xs font-medium text-[var(--color-muted)]">
-              {field.label}{" "}
-              {field.required ? (
-                <span className="text-[var(--color-gold)]">*</span>
-              ) : null}
-            </span>
-            <input
-              name={personalFieldNames[field.label]}
-              type={field.type}
-              placeholder={field.placeholder}
-              value={
-                formValues[
-                  personalFieldNames[
-                    field.label
-                  ] as keyof DriverRegistrationValues
-                ]
-              }
+        // type="date" бол float-label ашиглахгүй, тусдаа DateField ашиглана
+        if (field.type === "date") {
+          const fieldName = personalFieldNames[field.label] ?? "";
+          return (
+            <DateField
+              key={field.label}
+              id={fieldName}
+              label={field.label}
+              required={field.required}
+              value={formValues[fieldName as keyof DriverRegistrationValues]}
               onChange={onFieldChange}
-              className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:bg-[#22222E]"
             />
+          );
+        }
+
+        const fieldName = personalFieldNames[field.label] ?? "";
+
+        return (
+          <div key={field.label} className="float-label text-sm md:col-auto">
+            <input
+              id={fieldName}
+              name={fieldName}
+              type={field.type}
+              placeholder=" "
+              value={formValues[fieldName as keyof DriverRegistrationValues]}
+              onChange={onFieldChange}
+              className="w-full rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition"
+            />
+            <label htmlFor={fieldName}>
+              {field.label}
+              {field.required ? (
+                <span className="ml-0.5 text-[var(--color-gold)]">*</span>
+              ) : null}
+            </label>
             {field.hint ? (
-              <span className="text-[11px] text-[#5A5856]">{field.hint}</span>
+              <p className="mt-1 text-[11px] text-[#5A5856]">{field.hint}</p>
             ) : null}
-          </label>
+          </div>
         );
       })}
 
-      <label className="flex flex-col gap-1.5 md:col-span-2">
-        <span className="text-xs font-medium text-[var(--color-muted)]">
-          Гэрийн хаяг
-        </span>
+      <div className="float-label md:col-span-2">
         <input
+          id="homeAddress"
           name="homeAddress"
           type="text"
-          placeholder="Улаанбаатар, Сүхбаатар дүүрэг, 1-р хороо..."
+          placeholder=" "
           value={formValues.homeAddress}
           onChange={onFieldChange}
-          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:bg-[#22222E]"
+          className="w-full rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition"
         />
-      </label>
+        <label htmlFor="homeAddress">Гэрийн хаяг</label>
+      </div>
 
       <div className={`${sectionTitleClasses} mt-4 md:col-span-2`}>
         <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.1)] text-sm">
@@ -295,9 +333,10 @@ export const DocumentInfoStep = ({
           placeholder="MN-12345678"
           value={formValues.licenseNumber}
           onChange={onFieldChange}
-          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:shadow-[0_0_0_3px_rgba(201,168,76,0.12)]"
         />
       </label>
+
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--color-muted)]">
           Ангилал <span className="text-[var(--color-gold)]">*</span>
@@ -314,30 +353,23 @@ export const DocumentInfoStep = ({
           <option>D ангилал</option>
         </select>
       </label>
-      <label className="flex flex-col gap-1.5">
-        <span className="text-xs font-medium text-[var(--color-muted)]">
-          Олгосон огноо <span className="text-[var(--color-gold)]">*</span>
-        </span>
-        <input
-          name="licenseIssuedAt"
-          type="date"
-          value={formValues.licenseIssuedAt}
-          onChange={onFieldChange}
-          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
-        />
-      </label>
-      <label className="flex flex-col gap-1.5">
-        <span className="text-xs font-medium text-[var(--color-muted)]">
-          Дуусах огноо <span className="text-[var(--color-gold)]">*</span>
-        </span>
-        <input
-          name="licenseExpiry"
-          type="date"
-          value={formValues.licenseExpiry}
-          onChange={onFieldChange}
-          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
-        />
-      </label>
+
+      <DateField
+        id="licenseIssuedAt"
+        label="Олгосон огноо"
+        required
+        value={formValues.licenseIssuedAt}
+        onChange={onFieldChange}
+      />
+
+      <DateField
+        id="licenseExpiry"
+        label="Дуусах огноо"
+        required
+        value={formValues.licenseExpiry}
+        onChange={onFieldChange}
+      />
+
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--color-muted)]">
           Жолоодсон жил <span className="text-[var(--color-gold)]">*</span>
@@ -355,6 +387,7 @@ export const DocumentInfoStep = ({
           <option>10+ жил</option>
         </select>
       </label>
+
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--color-muted)]">
           Осол гарч байсан уу?
@@ -461,6 +494,7 @@ export const CarInfoStep = ({
           <option>Бусад</option>
         </select>
       </label>
+
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--color-muted)]">
           Загвар <span className="text-[var(--color-gold)]">*</span>
@@ -470,9 +504,10 @@ export const CarInfoStep = ({
           placeholder="Alphard, Hiace, Prius..."
           value={formValues.carModel}
           onChange={onFieldChange}
-          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:shadow-[0_0_0_3px_rgba(201,168,76,0.12)]"
         />
       </label>
+
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--color-muted)]">
           Он <span className="text-[var(--color-gold)]">*</span>
@@ -484,20 +519,15 @@ export const CarInfoStep = ({
           className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
         >
           <option value="">Сонгох...</option>
-          <option>2024</option>
-          <option>2023</option>
-          <option>2022</option>
-          <option>2021</option>
-          <option>2020</option>
-          <option>2019</option>
-          <option>2018</option>
-          <option>2017</option>
-          <option>2016</option>
-          <option>2015</option>
-          <option>2014</option>
-          <option>2013</option>
+          {[
+            2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014,
+            2013,
+          ].map((y) => (
+            <option key={y}>{y}</option>
+          ))}
         </select>
       </label>
+
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--color-muted)]">
           Өнгө
@@ -507,9 +537,10 @@ export const CarInfoStep = ({
           placeholder="Цагаан, Хар, Мөнгөлөг..."
           value={formValues.carColor}
           onChange={onFieldChange}
-          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:shadow-[0_0_0_3px_rgba(201,168,76,0.12)]"
         />
       </label>
+
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--color-muted)]">
           Улсын дугаар <span className="text-[var(--color-gold)]">*</span>
@@ -519,9 +550,10 @@ export const CarInfoStep = ({
           placeholder="1234 УНА"
           value={formValues.plateNumber}
           onChange={onFieldChange}
-          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:shadow-[0_0_0_3px_rgba(201,168,76,0.12)]"
         />
       </label>
+
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--color-muted)]">
           Суудлын тоо <span className="text-[var(--color-gold)]">*</span>
@@ -539,6 +571,7 @@ export const CarInfoStep = ({
           <option>10+</option>
         </select>
       </label>
+
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--color-muted)]">
           Өдрийн үнэ (₮) <span className="text-[var(--color-gold)]">*</span>
@@ -550,9 +583,10 @@ export const CarInfoStep = ({
           placeholder="180000"
           value={formValues.dailyRate}
           onChange={onFieldChange}
-          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+          className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:shadow-[0_0_0_3px_rgba(201,168,76,0.12)]"
         />
       </label>
+
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--color-muted)]">
           Хурдны хайрцаг
@@ -613,7 +647,7 @@ export const CarInfoStep = ({
           placeholder="Машины онцлог, тоноглол, нэмэлт мэдээлэл..."
           value={formValues.carNotes}
           onChange={onFieldChange}
-          className="min-h-24 rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none"
+          className="min-h-24 rounded-xl border border-white/8 bg-[var(--color-panel)] px-4 py-3 outline-none transition focus:border-[rgba(201,168,76,0.45)] focus:shadow-[0_0_0_3px_rgba(201,168,76,0.12)]"
         />
       </label>
 

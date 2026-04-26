@@ -60,27 +60,47 @@ export default function SignUpPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--color-bg)] px-4 py-8 text-[var(--color-text)] sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <section className="rounded-[28px] border border-white/8 bg-[linear-gradient(160deg,#0A0A0F_0%,#12121A_60%,#0F0F18_100%)] p-8">
+    <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+      <div className="grid min-h-screen lg:grid-cols-2">
+        <section className="relative flex flex-col justify-between overflow-hidden border-b border-white/8 bg-[linear-gradient(160deg,#0A0A0F_0%,#12121A_60%,#0F0F18_100%)] p-8 lg:border-b-0 lg:border-r lg:border-white/8 lg:p-12">
+          <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.09)_0%,transparent_70%)]" />
           <Link
             href="/"
             className="font-display text-2xl font-extrabold tracking-[-0.04em]"
           >
             ALPHARD<span className="text-[var(--color-gold)]">.</span>
           </Link>
-          <h1 className="mt-8 font-display text-4xl font-extrabold tracking-[-0.05em]">
-            Шинэ хэрэглэгчийн
-            <br />
-            <span className="text-[var(--color-gold)]">бүртгэл</span>
-          </h1>
-          <p className="mt-4 max-w-lg text-sm leading-7 text-[var(--color-muted)]">
-            Эхлээд хэрэглэгчээр бүртгүүлээд, дараа нь профайлаасаа жолооч эсвэл
-            компанийн хүсэлт гаргах боломжтой.
-          </p>
+
+          <div className="relative max-w-md">
+            <div className="mb-5 inline-flex rounded-full border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.08)] px-4 py-1.5 text-xs text-[var(--color-gold)]">
+              Шинэ хэрэглэгчийн бүртгэл
+            </div>
+            <h1 className="font-display text-4xl font-extrabold leading-tight tracking-[-0.05em] sm:text-5xl">
+              Дараагийн
+              <br />
+              <span className="text-[var(--color-gold)]">аяллаа</span>
+              <br />
+              эндээс эхлүүл
+            </h1>
+            <p className="mt-4 text-sm leading-7 text-[var(--color-muted)]">
+              Бүртгүүлээд баталгаажсан жолооч, найдвартай машинтай аяллаа хэдхэн
+              алхмаар захиалах боломжтой болно.
+            </p>
+            <div className="mt-8 space-y-3 text-sm text-[var(--color-muted)]">
+              <div>• Хэдхэн минутын дотор шинэ эрх нээнэ</div>
+              <div>• Баталгаажсан жолооч, даатгалтай машин сонгоно</div>
+              <div>• Захиалгын түүх, сэтгэгдлээ нэг газраас удирдана</div>
+              <div>• Дараа нь жолооч эсвэл байгууллагын хүсэлт гаргаж болно</div>
+            </div>
+          </div>
+
+          <div className="text-xs text-[#5A5856]">
+            © 2026 Alphard Rentals · Улаанбаатар, Монгол
+          </div>
         </section>
 
-        <section className="flex items-center justify-center rounded-[28px] border border-white/8 bg-[var(--color-surface)] p-4 sm:p-6">
+        <section className="flex items-center justify-center p-6 sm:p-8">
+          <div className="w-full max-w-md rounded-[28px] border border-white/8 bg-[var(--color-surface)] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.35)] sm:p-6">
             <SignUp
               appearance={{
                 elements: {
@@ -100,7 +120,7 @@ export default function SignUpPage() {
                 formFieldLabel: "text-[var(--color-muted)]",
                 dividerLine: "bg-white/8",
                 dividerText: "text-[var(--color-muted)]",
-              },
+                },
               }}
               path="/sign-up"
               routing="path"
@@ -108,7 +128,8 @@ export default function SignUpPage() {
               forceRedirectUrl={redirectUrl}
               fallbackRedirectUrl={redirectUrl}
             />
-          </section>
+          </div>
+        </section>
       </div>
     </main>
   );

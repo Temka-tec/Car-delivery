@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { MouseEvent } from "react";
+import { toast } from "@/components/toast";
+import { useRipple } from "@/hooks/use-ripple";
 
 type AdminApplicationActionsProps = {
   applicationId: string;
@@ -14,8 +17,13 @@ export const AdminApplicationActions = ({
 }: AdminApplicationActionsProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const ripple = useRipple();
 
-  const updateStatus = async (status: "APPROVED" | "REJECTED") => {
+  const updateStatus = async (
+    status: "APPROVED" | "REJECTED",
+    event: MouseEvent<HTMLButtonElement>,
+  ) => {
+    ripple(event);
     setIsLoading(true);
 
     try {
@@ -32,9 +40,15 @@ export const AdminApplicationActions = ({
 
       if (!response.ok) {
         const message = await response.text();
-        window.alert(message || "Төлөв шинэчлэх үед алдаа гарлаа.");
+        toast.error(message || "Төлөв шинэчлэх үед алдаа гарлаа.");
         return;
       }
+
+      toast.success(
+        status === "APPROVED"
+          ? "Хүсэлт амжилттай зөвшөөрөгдлөө ✓"
+          : "Хүсэлт татгалзагдлаа",
+      );
 
       router.push(
         `/admin/driver-applications?status=${
@@ -52,16 +66,16 @@ export const AdminApplicationActions = ({
       <button
         type="button"
         disabled={isLoading || currentStatus === "APPROVED"}
-        onClick={() => updateStatus("APPROVED")}
-        className="rounded-lg bg-[#3ECF8E] px-4 py-2 text-sm font-medium text-[#04130B] transition disabled:cursor-not-allowed disabled:opacity-50"
+        onClick={(event) => updateStatus("APPROVED", event)}
+        className="btn-ripple-effect rounded-lg bg-[#3ECF8E] px-4 py-2 text-sm font-medium text-[#04130B] transition disabled:cursor-not-allowed disabled:opacity-50"
       >
         Зөвшөөрөх
       </button>
       <button
         type="button"
         disabled={isLoading || currentStatus === "REJECTED"}
-        onClick={() => updateStatus("REJECTED")}
-        className="rounded-lg bg-[rgba(248,113,113,0.12)] px-4 py-2 text-sm text-[#F87171] transition disabled:cursor-not-allowed disabled:opacity-50"
+        onClick={(event) => updateStatus("REJECTED", event)}
+        className="btn-ripple-effect rounded-lg bg-[rgba(248,113,113,0.12)] px-4 py-2 text-sm text-[#F87171] transition disabled:cursor-not-allowed disabled:opacity-50"
       >
         Татгалзах
       </button>

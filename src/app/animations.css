@@ -1,0 +1,294 @@
+/* ----------------------------------------------------------
+   1. BUTTON — Shine sweep
+   ---------------------------------------------------------- */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease;
+}
+
+.btn-shine::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.28),
+    transparent
+  );
+  transition: left 0.48s ease;
+  pointer-events: none;
+}
+
+.btn-shine:hover::before {
+  left: 160%;
+}
+
+.btn-shine:hover {
+  transform: translateY(-2px);
+}
+
+.btn-shine:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.btn-ripple-effect {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease;
+}
+
+.btn-ripple-effect:hover {
+  transform: translateY(-2px);
+}
+
+.btn-ripple-effect:active {
+  transform: scale(0.97);
+}
+
+.ripple-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(201, 168, 76, 0.28);
+  transform: scale(0);
+  animation: ripple-expand 0.55s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes ripple-expand {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.card-lift {
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-color 0.2s ease,
+    box-shadow 0.28s ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.card-glow {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.card-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--glow-x, 50%) var(--glow-y, 50%),
+    rgba(201, 168, 76, 0.11),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.card-glow:hover::before {
+  opacity: 1;
+}
+
+.nav-underline {
+  position: relative;
+  padding-bottom: 4px;
+  transition: color 0.2s ease;
+}
+
+.nav-underline::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  right: 50%;
+  height: 1.5px;
+  background: var(--color-gold, #c9a84c);
+  transition:
+    left 0.25s ease,
+    right 0.25s ease;
+}
+
+.nav-underline:hover::after,
+.nav-underline.active::after {
+  left: 0;
+  right: 0;
+}
+
+.nav-underline:hover {
+  color: var(--color-gold, #c9a84c);
+}
+
+.badge-dot-pulse {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: badge-blink 1.4s ease infinite;
+}
+
+@keyframes badge-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.skeleton {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  animation: skeleton-shimmer 1.7s ease infinite;
+}
+
+.light .skeleton {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+@keyframes skeleton-shimmer {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.float-label {
+  position: relative;
+}
+
+.float-label input,
+.float-label select {
+  padding-top: 20px;
+  padding-bottom: 8px;
+}
+
+.float-label > label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--color-muted, #8a8880);
+  pointer-events: none;
+  transition:
+    top 0.18s ease,
+    font-size 0.18s ease,
+    color 0.18s ease;
+  padding: 0 2px;
+  background: transparent;
+}
+
+.float-label input:focus ~ label,
+.float-label input:not(:placeholder-shown) ~ label,
+.float-label select:focus ~ label {
+  top: 10px;
+  font-size: 10px;
+  color: var(--color-gold, #c9a84c);
+  transform: translateY(0);
+}
+
+.float-label input:focus {
+  border-color: rgba(201, 168, 76, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12) !important;
+}
+
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border-left: 3px solid var(--color-gold, #c9a84c);
+  background: var(--color-surface, #12121a);
+  color: var(--color-text, #f0ede4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+  transform: translateY(16px);
+  opacity: 0;
+  transition:
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+.toast.toast-show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast-success {
+  border-left-color: #3ecf8e;
+}
+
+.toast-error {
+  border-left-color: #f87171;
+}
+
+.toast-icon {
+  font-size: 16px;
+}
+
+.progress-bar-anim {
+  transition: width 0.75s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.fade-in-up {
+  animation: fade-in-up 0.45s ease both;
+}
+
+.fade-in-up-delay-1 {
+  animation-delay: 0.08s;
+}
+
+.fade-in-up-delay-2 {
+  animation-delay: 0.16s;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

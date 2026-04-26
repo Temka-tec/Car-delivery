@@ -87,7 +87,8 @@ export const AdminApplicationGallery = ({
     );
   };
 
-  const activeImage = activeIndex === null ? null : images[activeIndex] ?? null;
+  const activeImage =
+    activeIndex === null ? null : (images[activeIndex] ?? null);
   const coverImage = images[0] ?? null;
   const coverImageIsStored = isStoredImagePath(coverImage?.value);
 
@@ -103,8 +104,8 @@ export const AdminApplicationGallery = ({
               {carMake} {carModel}
             </h2>
             <p className="mt-2 text-sm text-[var(--color-muted)]">
-              Зураг дээр дарвал томруулж үзэх ба суман товчоор дараагийн зураг руу
-              шилжинэ.
+              Зураг дээр дарвал томруулж үзэх ба суман товчоор дараагийн зураг
+              руу шилжинэ.
             </p>
           </div>
           <div className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-[var(--color-muted)]">
@@ -163,25 +164,32 @@ export const AdminApplicationGallery = ({
             {
               key: "carFrontName",
               label: "Урд зураг",
-              value: images.find((image) => image.key === "carFrontName")?.value || null,
+              value:
+                images.find((image) => image.key === "carFrontName")?.value ||
+                null,
               icon: "↗",
             },
             {
               key: "carBackName",
               label: "Ар зураг",
-              value: images.find((image) => image.key === "carBackName")?.value || null,
+              value:
+                images.find((image) => image.key === "carBackName")?.value ||
+                null,
               icon: "↘",
             },
             {
               key: "carInteriorName",
               label: "Дотор зураг",
               value:
-                images.find((image) => image.key === "carInteriorName")?.value || null,
+                images.find((image) => image.key === "carInteriorName")
+                  ?.value || null,
               icon: "▣",
             },
           ].map((item) => {
             const canPreview = isStoredImagePath(item.value);
-            const previewIndex = images.findIndex((image) => image.key === item.key);
+            const previewIndex = images.findIndex(
+              (image) => image.key === item.key,
+            );
 
             return (
               <button
@@ -212,7 +220,9 @@ export const AdminApplicationGallery = ({
                   </div>
                 )}
                 <div className="p-4">
-                  <div className="text-xs text-[var(--color-muted)]">{item.label}</div>
+                  <div className="text-xs text-[var(--color-muted)]">
+                    {item.label}
+                  </div>
                   <div className="mt-1 break-all text-sm font-medium">
                     {item.value || "Оруулаагүй"}
                   </div>
@@ -223,7 +233,9 @@ export const AdminApplicationGallery = ({
         </div>
 
         <div className="mt-4 rounded-2xl border border-white/8 bg-[var(--color-panel)] p-4">
-          <div className="text-xs text-[var(--color-muted)]">Жолоочийн мэдээлэл</div>
+          <div className="text-xs text-[var(--color-muted)]">
+            Жолоочийн мэдээлэл
+          </div>
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-sm text-[var(--color-muted)]">Нэр</div>
@@ -320,13 +332,15 @@ export const AdminApplicationGallery = ({
                   Зургийн дугаар
                 </div>
                 <div className="mt-1 text-sm font-medium">
-                  {activeIndex + 1} / {images.length}
+                  {(activeIndex ?? 0) + 1} / {images.length}
                 </div>
 
                 <div className="mt-5 text-xs text-[var(--color-muted)]">
                   Тайлбар
                 </div>
-                <div className="mt-1 text-sm font-medium">{activeImage.label}</div>
+                <div className="mt-1 text-sm font-medium">
+                  {activeImage.label}
+                </div>
               </div>
             </div>
           </div>

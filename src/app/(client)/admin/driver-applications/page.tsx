@@ -14,6 +14,20 @@ const statusTone: Record<string, string> = {
   REJECTED: "text-[#F87171] bg-[rgba(248,113,113,0.12)]",
 };
 
+const statusDotColor: Record<string, string> = {
+  PENDING: "#FBBF24",
+  REVIEWING: "#c9a84c",
+  APPROVED: "#3ECF8E",
+  REJECTED: "#F87171",
+};
+
+const statusPulse: Record<string, boolean> = {
+  PENDING: true,
+  REVIEWING: true,
+  APPROVED: false,
+  REJECTED: false,
+};
+
 const statusLabel: Record<string, string> = {
   PENDING: "Шинэ хүсэлт",
   REVIEWING: "Шалгаж байсан",
@@ -214,7 +228,7 @@ export default async function AdminDriverApplicationsPage({
             return (
               <section
                 key={application.id}
-                className="rounded-[24px] border border-white/8 bg-[var(--color-surface)] p-5"
+                className="card-lift rounded-[24px] border border-white/8 bg-[var(--color-surface)] p-5"
               >
                 <div className="flex flex-col gap-4 border-b border-white/8 pb-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
@@ -230,8 +244,21 @@ export default async function AdminDriverApplicationsPage({
 
                   <div className="flex flex-col items-start gap-3 lg:items-end">
                     <span
-                      className={`rounded-full px-3 py-1 text-xs ${statusTone[application.status]}`}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs ${statusTone[application.status]}`}
                     >
+                      <span
+                        className={
+                          statusPulse[application.status]
+                            ? "badge-dot-pulse"
+                            : "inline-block h-1.5 w-1.5 rounded-full"
+                        }
+                        style={{
+                          background: statusDotColor[application.status],
+                          width: 6,
+                          height: 6,
+                          flexShrink: 0,
+                        }}
+                      />
                       {statusLabel[application.status]}
                     </span>
                     {!isDecisionTab ? (

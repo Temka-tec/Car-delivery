@@ -12,6 +12,7 @@ import {
   parseLocationSelection,
 } from "@/lib/mongolia-locations";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { toast } from "@/components/toast";
 import { searchDefaults } from "./booking-data";
 
 type BookingCar = Omit<CarListItem, "price"> & {
@@ -138,15 +139,17 @@ export const BookingExperience = ({
   const [routeQuery, setRouteQuery] = useState(searchDefaults.direction);
   const [seatFilter, setSeatFilter] = useState("Бүгд");
   const [sortOrder, setSortOrder] = useState("Үнэ: бага → их");
-  const [selectedMakes, setSelectedMakes] = useState<string[]>(["Toyota"]);
-  const [selectedSeatBuckets, setSelectedSeatBuckets] = useState<string[]>(["7-8 суудал"]);
-  const [selectedTransmissions, setSelectedTransmissions] = useState<string[]>([
-    "Автомат",
-  ]);
+  const [selectedMakes, setSelectedMakes] = useState<string[]>([]);
+  const [selectedSeatBuckets, setSelectedSeatBuckets] = useState<string[]>([]);
+  const [selectedTransmissions, setSelectedTransmissions] = useState<string[]>(
+    [],
+  );
   const [modalStart, setModalStart] = useState(searchDefaults.startDate);
   const [modalEnd, setModalEnd] = useState(searchDefaults.endDate);
-  const [selectedAimag, setSelectedAimag] = useState(defaultLocationSelection.aimag);
-  const [selectedDestination, setSelectedDestination] = useState(
+  const [selectedAimag, setSelectedAimag] = useState<string>(
+    defaultLocationSelection.aimag,
+  );
+  const [selectedDestination, setSelectedDestination] = useState<string>(
     defaultLocationSelection.destination,
   );
   const [routeDetails, setRouteDetails] = useState("");
@@ -155,9 +158,13 @@ export const BookingExperience = ({
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageViewerIndex, setImageViewerIndex] = useState<number | null>(null);
-  const [reviewDrafts, setReviewDrafts] = useState(buildInitialReviewDrafts(initialBookings));
+  const [reviewDrafts, setReviewDrafts] = useState(
+    buildInitialReviewDrafts(initialBookings),
+  );
   const [reviewError, setReviewError] = useState<string | null>(null);
-  const [reviewSubmittingId, setReviewSubmittingId] = useState<string | null>(null);
+  const [reviewSubmittingId, setReviewSubmittingId] = useState<string | null>(
+    null,
+  );
 
   const availableMakes = Array.from(
     new Set(bookingCars.map((car) => car.name.split(" ")[0] || car.name)),
@@ -185,7 +192,8 @@ export const BookingExperience = ({
       const haystack = [car.name, car.location, car.meta, ...car.tags]
         .join(" ")
         .toLowerCase();
-      const matchesRoute = !normalizedQuery || haystack.includes(normalizedQuery);
+      const matchesRoute =
+        !normalizedQuery || haystack.includes(normalizedQuery);
 
       return (
         matchesMake &&
@@ -224,14 +232,15 @@ export const BookingExperience = ({
   ]);
 
   const activeCar = selectedCar ?? filteredCars[0] ?? bookingCars[0] ?? null;
-  const activeCarImages =
-    selectedCar?.photos.length
-      ? selectedCar.photos
-      : selectedCar?.heroImage
-        ? [selectedCar.heroImage]
-        : [];
+  const activeCarImages = selectedCar?.photos.length
+    ? selectedCar.photos
+    : selectedCar?.heroImage
+      ? [selectedCar.heroImage]
+      : [];
   const activeViewerImage =
-    imageViewerIndex === null ? null : activeCarImages[imageViewerIndex] ?? null;
+    imageViewerIndex === null
+      ? null
+      : (activeCarImages[imageViewerIndex] ?? null);
   const clerkDisplayName =
     user?.fullName ||
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
@@ -265,7 +274,9 @@ export const BookingExperience = ({
 
       if (event.key === "ArrowLeft") {
         setImageViewerIndex((current) =>
-          current === null ? 0 : (current - 1 + activeCarImages.length) % activeCarImages.length,
+          current === null
+            ? 0
+            : (current - 1 + activeCarImages.length) % activeCarImages.length,
         );
       }
     };
@@ -299,7 +310,9 @@ export const BookingExperience = ({
 
   const startDate = new Date(modalStart);
   const endDate = new Date(modalEnd);
-  const diffDays = Math.round((endDate.getTime() - startDate.getTime()) / 86400000);
+  const diffDays = Math.round(
+    (endDate.getTime() - startDate.getTime()) / 86400000,
+  );
   const bookingDays = Number.isNaN(diffDays) ? 1 : Math.max(1, diffDays);
   const subtotal = activeCar.price * bookingDays;
   const serviceFee = Math.round(subtotal * 0.05);
@@ -324,9 +337,9 @@ export const BookingExperience = ({
     setRouteQuery(searchDefaults.direction);
     setSeatFilter("Бүгд");
     setSortOrder("Үнэ: бага → их");
-    setSelectedMakes(["Toyota"]);
-    setSelectedSeatBuckets(["7-8 суудал"]);
-    setSelectedTransmissions(["Автомат"]);
+    setSelectedMakes([]);
+    setSelectedSeatBuckets([]);
+    setSelectedTransmissions([]);
   };
 
   const openBooking = (car: BookingCar) => {
@@ -383,14 +396,17 @@ export const BookingExperience = ({
       if (!response.ok) {
         const message = await response.text();
         setBookingError(message || "Захиалга илгээх үед алдаа гарлаа.");
+        toast.error(message || "Захиалга илгээх үед алдаа гарлаа.");
         return;
       }
 
       const data = (await response.json()) as { bookingCode?: string };
       setBookingCode(data.bookingCode || "");
       setSuccess(true);
+      toast.success("Захиалга амжилттай илгээгдлээ!");
     } catch {
       setBookingError("Захиалга илгээх үед алдаа гарлаа. Дахин оролдоно уу.");
+      toast.error("Захиалга илгээх үед алдаа гарлаа. Дахин оролдоно уу.");
     } finally {
       setIsSubmitting(false);
     }
@@ -418,6 +434,7 @@ export const BookingExperience = ({
       if (!response.ok) {
         const message = await response.text();
         setReviewError(message || "Сэтгэгдэл хадгалах үед алдаа гарлаа.");
+        toast.error(message || "Сэтгэгдэл хадгалах үед алдаа гарлаа.");
         return;
       }
 
@@ -434,8 +451,10 @@ export const BookingExperience = ({
             : booking,
         ),
       );
+      toast.success("Сэтгэгдэл амжилттай хадгалагдлаа!");
     } catch {
       setReviewError("Сэтгэгдэл хадгалах үед алдаа гарлаа.");
+      toast.error("Сэтгэгдэл хадгалах үед алдаа гарлаа.");
     } finally {
       setReviewSubmittingId(null);
     }
@@ -566,7 +585,10 @@ export const BookingExperience = ({
                     ).length;
 
                     return (
-                      <label key={make} className="flex cursor-pointer items-center gap-2">
+                      <label
+                        key={make}
+                        className="flex cursor-pointer items-center gap-2"
+                      >
                         <input
                           checked={selectedMakes.includes(make)}
                           onChange={() =>
@@ -575,7 +597,9 @@ export const BookingExperience = ({
                           type="checkbox"
                           className="h-4 w-4 accent-[var(--color-gold)]"
                         />
-                        <span className="text-sm text-[var(--color-muted)]">{make}</span>
+                        <span className="text-sm text-[var(--color-muted)]">
+                          {make}
+                        </span>
                         <span className="ml-auto rounded-full border border-white/8 bg-[var(--color-panel)] px-2 py-0.5 text-[11px] text-[#5A5856]">
                           {count}
                         </span>
@@ -596,7 +620,10 @@ export const BookingExperience = ({
                     ).length;
 
                     return (
-                      <label key={bucket} className="flex cursor-pointer items-center gap-2">
+                      <label
+                        key={bucket}
+                        className="flex cursor-pointer items-center gap-2"
+                      >
                         <input
                           checked={selectedSeatBuckets.includes(bucket)}
                           onChange={() =>
@@ -609,7 +636,9 @@ export const BookingExperience = ({
                           type="checkbox"
                           className="h-4 w-4 accent-[var(--color-gold)]"
                         />
-                        <span className="text-sm text-[var(--color-muted)]">{bucket}</span>
+                        <span className="text-sm text-[var(--color-muted)]">
+                          {bucket}
+                        </span>
                         <span className="ml-auto rounded-full border border-white/8 bg-[var(--color-panel)] px-2 py-0.5 text-[11px] text-[#5A5856]">
                           {count}
                         </span>
@@ -630,7 +659,10 @@ export const BookingExperience = ({
                     ).length;
 
                     return (
-                      <label key={item} className="flex cursor-pointer items-center gap-2">
+                      <label
+                        key={item}
+                        className="flex cursor-pointer items-center gap-2"
+                      >
                         <input
                           checked={selectedTransmissions.includes(item)}
                           onChange={() =>
@@ -643,7 +675,9 @@ export const BookingExperience = ({
                           type="checkbox"
                           className="h-4 w-4 accent-[var(--color-gold)]"
                         />
-                        <span className="text-sm text-[var(--color-muted)]">{item}</span>
+                        <span className="text-sm text-[var(--color-muted)]">
+                          {item}
+                        </span>
                         <span className="ml-auto rounded-full border border-white/8 bg-[var(--color-panel)] px-2 py-0.5 text-[11px] text-[#5A5856]">
                           {count}
                         </span>
@@ -680,7 +714,9 @@ export const BookingExperience = ({
                   {filteredCars.length}
                 </strong>{" "}
                 машин олдлоо
-                {searchStart && searchEnd ? ` · ${searchStart} → ${searchEnd}` : ""}
+                {searchStart && searchEnd
+                  ? ` · ${searchStart} → ${searchEnd}`
+                  : ""}
               </p>
               <select
                 value={sortOrder}
@@ -697,7 +733,8 @@ export const BookingExperience = ({
             <div className="space-y-4">
               {filteredCars.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-white/10 bg-[var(--color-panel)] p-8 text-sm text-[var(--color-muted)]">
-                  Энэ шүүлтээр машин олдсонгүй. Шүүлтээ багасгаад дахин оролдоно уу.
+                  Энэ шүүлтээр машин олдсонгүй. Шүүлтээ багасгаад дахин оролдоно
+                  уу.
                 </div>
               ) : null}
 
@@ -743,12 +780,16 @@ export const BookingExperience = ({
                     <div className="flex flex-col justify-between p-5">
                       <div>
                         <div className="mb-2 flex items-start justify-between gap-3">
-                          <h3 className="font-display text-lg font-bold">{car.name}</h3>
+                          <h3 className="font-display text-lg font-bold">
+                            {car.name}
+                          </h3>
                           <span className="rounded-md border border-white/8 bg-[#22222E] px-2 py-1 text-[11px] text-[var(--color-muted)]">
                             {car.year}
                           </span>
                         </div>
-                        <p className="text-sm text-[var(--color-muted)]">{car.meta}</p>
+                        <p className="text-sm text-[var(--color-muted)]">
+                          {car.meta}
+                        </p>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {car.features.map((feature) => (
                             <span
@@ -779,8 +820,12 @@ export const BookingExperience = ({
                     <div className="flex flex-col justify-between border-t border-white/8 p-5 xl:border-l xl:border-t-0">
                       <div>
                         <div className="mb-1 flex items-center justify-end gap-1 text-xs">
-                          <span className="text-[var(--color-gold)]">★★★★★</span>
-                          <span className="font-medium">{car.rating.toFixed(1)}</span>
+                          <span className="text-[var(--color-gold)]">
+                            ★★★★★
+                          </span>
+                          <span className="font-medium">
+                            {car.rating.toFixed(1)}
+                          </span>
                           <span className="text-[var(--color-muted)]">
                             ({car.ratingCount})
                           </span>
@@ -820,7 +865,9 @@ export const BookingExperience = ({
             <section className="mt-10 rounded-[24px] border border-white/8 bg-[var(--color-surface)] p-5">
               <div className="mb-4 flex items-center justify-between gap-4">
                 <div>
-                  <div className="font-display text-lg font-bold">Миний захиалгууд</div>
+                  <div className="font-display text-lg font-bold">
+                    Миний захиалгууд
+                  </div>
                   <div className="mt-1 text-sm text-[var(--color-muted)]">
                     Дууссан захиалган дээр сэтгэгдэл үлдээж болно.
                   </div>
@@ -843,7 +890,10 @@ export const BookingExperience = ({
               ) : (
                 <div className="space-y-4">
                   {recentBookings.map((booking) => {
-                    const draft = reviewDrafts[booking.id] || { rating: 5, comment: "" };
+                    const draft = reviewDrafts[booking.id] || {
+                      rating: 5,
+                      comment: "",
+                    };
 
                     return (
                       <div
@@ -875,7 +925,8 @@ export const BookingExperience = ({
                                 Жолооч: {booking.driver.name}
                               </div>
                               <div className="mt-2 text-xs text-[var(--color-muted)]">
-                                {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
+                                {formatDate(booking.startDate)} -{" "}
+                                {formatDate(booking.endDate)}
                               </div>
                               <div className="mt-2 text-sm text-[var(--color-muted)]">
                                 Чиглэл: {booking.destination || "Оруулаагүй"}
@@ -890,7 +941,8 @@ export const BookingExperience = ({
                             <div
                               className={`inline-flex rounded-full px-3 py-1 text-xs ${bookingStatusTone[booking.status] || "bg-white/10 text-white/70"}`}
                             >
-                              {bookingStatusLabel[booking.status] || booking.status}
+                              {bookingStatusLabel[booking.status] ||
+                                booking.status}
                             </div>
                             <div className="mt-3 font-display text-xl font-bold text-[var(--color-gold)]">
                               {formatPrice(booking.totalPrice)}
@@ -909,7 +961,9 @@ export const BookingExperience = ({
                           </div>
                         ) : booking.status === "COMPLETED" ? (
                           <div className="mt-4 rounded-xl border border-white/8 bg-[var(--color-surface)] p-4">
-                            <div className="text-sm font-medium">Сэтгэгдэл үлдээх</div>
+                            <div className="text-sm font-medium">
+                              Сэтгэгдэл үлдээх
+                            </div>
                             <div className="mt-3 flex flex-wrap gap-2">
                               {[1, 2, 3, 4, 5].map((star) => (
                                 <button
@@ -963,7 +1017,8 @@ export const BookingExperience = ({
                           </div>
                         ) : (
                           <div className="mt-4 text-sm text-[var(--color-muted)]">
-                            Энэ захиалга дууссаны дараа сэтгэгдэл үлдээх боломжтой.
+                            Энэ захиалга дууссаны дараа сэтгэгдэл үлдээх
+                            боломжтой.
                           </div>
                         )}
                       </div>
@@ -993,8 +1048,8 @@ export const BookingExperience = ({
                   Захиалга илгээгдлээ!
                 </h3>
                 <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--color-muted)]">
-                  Жолооч таны чиглэл болон дэлгэрэнгүй байршлын мэдээллийг хүлээн
-                  авлаа. Удахгүй холбогдоно.
+                  Жолооч таны чиглэл болон дэлгэрэнгүй байршлын мэдээллийг
+                  хүлээн авлаа. Удахгүй холбогдоно.
                 </p>
 
                 <div className="mt-6 rounded-xl border border-white/8 bg-[var(--color-panel)] p-4 text-left text-sm">
@@ -1013,14 +1068,20 @@ export const BookingExperience = ({
                     <span className="font-medium">{selectedDestination}</span>
                   </div>
                   <div className="flex justify-between border-b border-white/8 py-2">
-                    <span className="text-[var(--color-muted)]">Дэлгэрэнгүй</span>
+                    <span className="text-[var(--color-muted)]">
+                      Дэлгэрэнгүй
+                    </span>
                     <span className="max-w-[60%] text-right font-medium">
                       {routeDetails || "Оруулаагүй"}
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-[var(--color-muted)]">Захиалгын №</span>
-                    <span className="font-medium">#{bookingCode || "ALR-PENDING"}</span>
+                    <span className="text-[var(--color-muted)]">
+                      Захиалгын №
+                    </span>
+                    <span className="font-medium">
+                      #{bookingCode || "ALR-PENDING"}
+                    </span>
                   </div>
                 </div>
 
@@ -1035,9 +1096,12 @@ export const BookingExperience = ({
               <>
                 <div className="flex items-center justify-between border-b border-white/8 px-6 py-5">
                   <div>
-                    <h3 className="font-display text-lg font-bold">Захиалга баталгаажуулах</h3>
+                    <h3 className="font-display text-lg font-bold">
+                      Захиалга баталгаажуулах
+                    </h3>
                     <div className="mt-1 text-sm text-[var(--color-muted)]">
-                      Машины detail page-тэй ижил байдлаар чиглэлээ тодорхой оруулна уу.
+                      Машины detail page-тэй ижил байдлаар чиглэлээ тодорхой
+                      оруулна уу.
                     </div>
                   </div>
                   <button
@@ -1077,7 +1141,9 @@ export const BookingExperience = ({
                         )}
                       </button>
                       <div>
-                        <strong className="block text-sm font-medium">{selectedCar.name}</strong>
+                        <strong className="block text-sm font-medium">
+                          {selectedCar.name}
+                        </strong>
                         <span className="text-xs text-[var(--color-muted)]">
                           {selectedCar.year} · {selectedCar.transmission}
                         </span>
@@ -1088,9 +1154,11 @@ export const BookingExperience = ({
                     </div>
 
                     <div className="rounded-2xl border border-[rgba(96,165,250,0.22)] bg-[rgba(96,165,250,0.08)] p-4 text-sm leading-6 text-[var(--color-muted)]">
-                      <div className="mb-1 font-medium text-[#60A5FA]">Байршлын тайлбар</div>
-                      Энд сум, хороо, амралтын газар, уулзах цэгээ тодорхой бичвэл
-                      жолооч дээр яг тэр мэдээлэл очно.
+                      <div className="mb-1 font-medium text-[#60A5FA]">
+                        Байршлын тайлбар
+                      </div>
+                      Энд сум, хороо, амралтын газар, уулзах цэгээ тодорхой
+                      бичвэл жолооч дээр яг тэр мэдээлэл очно.
                     </div>
 
                     <div className="mt-4 grid gap-3">
@@ -1123,15 +1191,25 @@ export const BookingExperience = ({
                         Хаашаа явах
                         <select
                           value={selectedDestination}
-                          onChange={(event) => setSelectedDestination(event.target.value)}
+                          onChange={(event) =>
+                            setSelectedDestination(event.target.value)
+                          }
                           className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-[var(--color-text)] outline-none"
                         >
                           {mongoliaLocations.map((location) => (
-                            <optgroup key={location.aimag} label={location.aimag}>
+                            <optgroup
+                              key={location.aimag}
+                              label={location.aimag}
+                            >
                               {departureOptions
-                                .filter((option) => option.aimag === location.aimag)
+                                .filter(
+                                  (option) => option.aimag === location.aimag,
+                                )
                                 .map((option) => (
-                                  <option key={option.value} value={option.value}>
+                                  <option
+                                    key={option.value}
+                                    value={option.value}
+                                  >
                                     {option.value}
                                   </option>
                                 ))}
@@ -1145,7 +1223,9 @@ export const BookingExperience = ({
                           Эхлэх огноо
                           <input
                             value={modalStart}
-                            onChange={(event) => setModalStart(event.target.value)}
+                            onChange={(event) =>
+                              setModalStart(event.target.value)
+                            }
                             type="date"
                             className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-[var(--color-text)] outline-none"
                           />
@@ -1154,7 +1234,9 @@ export const BookingExperience = ({
                           Дуусах огноо
                           <input
                             value={modalEnd}
-                            onChange={(event) => setModalEnd(event.target.value)}
+                            onChange={(event) =>
+                              setModalEnd(event.target.value)
+                            }
                             type="date"
                             className="rounded-xl border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-[var(--color-text)] outline-none"
                           />
@@ -1165,7 +1247,9 @@ export const BookingExperience = ({
                         Дэлгэрэнгүй байршил / тосох цэг
                         <textarea
                           value={routeDetails}
-                          onChange={(event) => setRouteDetails(event.target.value)}
+                          onChange={(event) =>
+                            setRouteDetails(event.target.value)
+                          }
                           placeholder="Жишээ: Архангай, Тариат сум, Хоргын тогоо амралтын газрын үүдэнд тосоод явна уу."
                           className="min-h-28 rounded-xl border border-white/8 bg-[var(--color-panel)] px-3 py-2.5 text-sm outline-none"
                         />
@@ -1182,7 +1266,9 @@ export const BookingExperience = ({
                   <div className="p-6">
                     <div className="rounded-2xl border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.06)] p-4 text-sm">
                       <div className="mb-2 flex items-center justify-between text-[var(--color-muted)]">
-                        <span>{formatPrice(selectedCar.price)} × {bookingDays} өдөр</span>
+                        <span>
+                          {formatPrice(selectedCar.price)} × {bookingDays} өдөр
+                        </span>
                         <span>{formatPrice(subtotal)}</span>
                       </div>
                       <div className="mb-2 flex items-center justify-between text-[var(--color-muted)]">
@@ -1203,26 +1289,38 @@ export const BookingExperience = ({
                       </div>
                       <div className="mt-3 space-y-3 text-sm">
                         <div>
-                          <div className="text-[var(--color-muted)]">Чиглэл</div>
-                          <div className="mt-1 font-medium">{selectedDestination}</div>
+                          <div className="text-[var(--color-muted)]">
+                            Чиглэл
+                          </div>
+                          <div className="mt-1 font-medium">
+                            {selectedDestination}
+                          </div>
                         </div>
                         <div>
-                          <div className="text-[var(--color-muted)]">Дэлгэрэнгүй</div>
+                          <div className="text-[var(--color-muted)]">
+                            Дэлгэрэнгүй
+                          </div>
                           <div className="mt-1 font-medium">
                             {routeDetails || "Одоогоор оруулаагүй"}
                           </div>
                         </div>
                         <div>
-                          <div className="text-[var(--color-muted)]">Жолооч</div>
-                          <div className="mt-1 font-medium">{selectedCar.driver.name}</div>
+                          <div className="text-[var(--color-muted)]">
+                            Жолооч
+                          </div>
+                          <div className="mt-1 font-medium">
+                            {selectedCar.driver.name}
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     <p className="mt-4 text-xs leading-5 text-[#5A5856]">
-                      <strong className="text-[var(--color-muted)]">Анхааруулга:</strong>{" "}
-                      Аяллаа эхлэхээс өмнө жолооч таны оруулсан сум, хороо, тосох
-                      цэгийн тайлбарыг шууд харна.
+                      <strong className="text-[var(--color-muted)]">
+                        Анхааруулга:
+                      </strong>{" "}
+                      Аяллаа эхлэхээс өмнө жолооч таны оруулсан сум, хороо,
+                      тосох цэгийн тайлбарыг шууд харна.
                     </p>
 
                     <div className="mt-5 flex gap-3">
@@ -1261,9 +1359,11 @@ export const BookingExperience = ({
           >
             <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-6">
               <div>
-                <div className="text-sm font-semibold text-white">{selectedCar.name}</div>
+                <div className="text-sm font-semibold text-white">
+                  {selectedCar.name}
+                </div>
                 <div className="mt-1 text-xs text-[var(--color-muted)]">
-                  {imageViewerIndex + 1} / {activeCarImages.length}
+                  {(imageViewerIndex ?? 0) + 1} / {activeCarImages.length}
                 </div>
               </div>
               <button
@@ -1291,7 +1391,10 @@ export const BookingExperience = ({
                     type="button"
                     onClick={() =>
                       setImageViewerIndex((current) =>
-                        current === null ? 0 : (current - 1 + activeCarImages.length) % activeCarImages.length,
+                        current === null
+                          ? 0
+                          : (current - 1 + activeCarImages.length) %
+                            activeCarImages.length,
                       )
                     }
                     className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/55 text-xl text-white transition hover:bg-black/75"
@@ -1303,7 +1406,9 @@ export const BookingExperience = ({
                     type="button"
                     onClick={() =>
                       setImageViewerIndex((current) =>
-                        current === null ? 0 : (current + 1) % activeCarImages.length,
+                        current === null
+                          ? 0
+                          : (current + 1) % activeCarImages.length,
                       )
                     }
                     className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/55 text-xl text-white transition hover:bg-black/75"

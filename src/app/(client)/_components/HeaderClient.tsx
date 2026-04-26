@@ -2,9 +2,10 @@
 
 import { UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
-
+import { useRipple } from "@/hooks/use-ripple";
 import { navItems } from "./landing-data";
 
 type HeaderClientProps = {
@@ -16,6 +17,16 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
   const userId = user?.id;
   const isSignedIn = isLoaded && Boolean(userId);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const ripple = useRipple();
+
+  const isNavActive = (href: string) => {
+    if (href.startsWith("#")) {
+      return false;
+    }
+    return pathname === href;
+  };
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/8 bg-[var(--color-header-bg)] backdrop-blur">
@@ -33,7 +44,12 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
               <a
                 key={item.label}
                 href={item.href}
-                className="text-sm text-[var(--color-muted)] transition hover:text-[var(--color-gold)]"
+                className={[
+                  "nav-underline text-sm transition",
+                  isNavActive(item.href)
+                    ? "active text-[var(--color-text)]"
+                    : "text-[var(--color-muted)]",
+                ].join(" ")}
               >
                 {item.label}
               </a>
@@ -41,7 +57,12 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
             {isAdmin ? (
               <Link
                 href="/admin/driver-applications"
-                className="text-sm font-medium text-[var(--color-gold)] transition hover:text-[var(--color-gold-light)]"
+                className={[
+                  "nav-underline text-sm font-medium transition",
+                  pathname.startsWith("/admin")
+                    ? "active text-[var(--color-gold)]"
+                    : "text-[var(--color-gold)]",
+                ].join(" ")}
               >
                 Админ
               </Link>
@@ -58,12 +79,16 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
                 >
                   Нэвтрэх
                 </Link>
-                <Link
-                  href="/sign-up"
-                  className="rounded-lg bg-[var(--color-gold)] px-4 py-2 text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    ripple(event);
+                    router.push("/sign-up");
+                  }}
+                  className="btn-shine btn-ripple-effect rounded-lg bg-[var(--color-gold)] px-4 py-2 text-sm font-medium text-[var(--color-ink)]"
                 >
                   Бүртгүүлэх
-                </Link>
+                </button>
               </>
             ) : (
               <>
@@ -75,12 +100,16 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
                     Admin
                   </Link>
                 ) : null}
-                <Link
-                  href="/booking"
-                  className="rounded-lg bg-[var(--color-gold)] px-4 py-2 text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    ripple(event);
+                    router.push("/booking");
+                  }}
+                  className="btn-shine btn-ripple-effect rounded-lg bg-[var(--color-gold)] px-4 py-2 text-sm font-medium text-[var(--color-ink)]"
                 >
                   Захиалах
-                </Link>
+                </button>
                 <UserButton
                   appearance={{
                     elements: {
@@ -96,7 +125,7 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
             <ThemeToggle />
             <button
               type="button"
-              onClick={() => setIsMenuOpen((current) => !current)}
+              onClick={() => setIsMenuOpen((c) => !c)}
               className="rounded-lg border border-white/10 px-3 py-2 text-sm text-[var(--color-text)]"
               aria-label="Menu нээх"
             >
@@ -106,7 +135,7 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
         </div>
 
         {isMenuOpen ? (
-          <div className="mt-4 rounded-2xl border border-white/8 bg-[var(--color-surface)] p-4 md:hidden">
+          <div className="fade-in-up mt-4 rounded-2xl border border-white/8 bg-[var(--color-surface)] p-4 md:hidden">
             <nav className="flex flex-col gap-2">
               {navItems.map((item) => (
                 <a
@@ -142,7 +171,7 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
                   <Link
                     href="/sign-up"
                     onClick={() => setIsMenuOpen(false)}
-                    className="rounded-lg bg-[var(--color-gold)] px-4 py-3 text-center text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
+                    className="btn-shine rounded-lg bg-[var(--color-gold)] px-4 py-3 text-center text-sm font-medium text-[var(--color-ink)]"
                   >
                     Бүртгүүлэх
                   </Link>
@@ -161,7 +190,7 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
                   <Link
                     href="/booking"
                     onClick={() => setIsMenuOpen(false)}
-                    className="rounded-lg bg-[var(--color-gold)] px-4 py-3 text-center text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-gold-light)]"
+                    className="btn-shine rounded-lg bg-[var(--color-gold)] px-4 py-3 text-center text-sm font-medium text-[var(--color-ink)]"
                   >
                     Захиалах
                   </Link>
@@ -169,7 +198,8 @@ export const HeaderClient = ({ isAdmin }: HeaderClientProps) => {
                     <UserButton
                       appearance={{
                         elements: {
-                          avatarBox: "h-10 w-10 ring-1 ring-[rgba(201,168,76,0.3)]",
+                          avatarBox:
+                            "h-10 w-10 ring-1 ring-[rgba(201,168,76,0.3)]",
                         },
                       }}
                     />
