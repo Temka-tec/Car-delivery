@@ -31,7 +31,7 @@ export function CarImageGallery({
         : [];
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const activeImage =
-    activeIndex === null ? null : displayImages[activeIndex] ?? null;
+    activeIndex === null ? null : (displayImages[activeIndex] ?? null);
 
   useEffect(() => {
     if (activeIndex === null) {
@@ -58,7 +58,9 @@ export function CarImageGallery({
 
       if (event.key === "ArrowLeft") {
         setActiveIndex((current) =>
-          current === null ? 0 : (current - 1 + displayImages.length) % displayImages.length,
+          current === null
+            ? 0
+            : (current - 1 + displayImages.length) % displayImages.length,
         );
       }
     };
@@ -105,7 +107,9 @@ export function CarImageGallery({
 
       <div className="mt-3 grid grid-cols-4 gap-2">
         {gallery.map((item, index) => {
-          const previewIndex = displayImages.findIndex((image) => image === item);
+          const previewIndex = displayImages.findIndex(
+            (image) => image === item,
+          );
 
           return (
             <button
@@ -151,9 +155,12 @@ export function CarImageGallery({
           >
             <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-6">
               <div>
-                <div className="text-sm font-semibold text-white">{carName}</div>
+                <div className="text-sm font-semibold text-white">
+                  {carName}
+                </div>
                 <div className="mt-1 text-xs text-[var(--color-muted)]">
-                  {activeIndex + 1} / {displayImages.length}
+                  {activeIndex !== null ? activeIndex + 1 : 1} /{" "}
+                  {displayImages.length}
                 </div>
               </div>
               <button
@@ -181,7 +188,10 @@ export function CarImageGallery({
                     type="button"
                     onClick={() =>
                       setActiveIndex((current) =>
-                        current === null ? 0 : (current - 1 + displayImages.length) % displayImages.length,
+                        current === null
+                          ? 0
+                          : (current - 1 + displayImages.length) %
+                            displayImages.length,
                       )
                     }
                     className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/55 text-xl text-white transition hover:bg-black/75"
@@ -193,7 +203,9 @@ export function CarImageGallery({
                     type="button"
                     onClick={() =>
                       setActiveIndex((current) =>
-                        current === null ? 0 : (current + 1) % displayImages.length,
+                        current === null
+                          ? 0
+                          : (current + 1) % displayImages.length,
                       )
                     }
                     className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/55 text-xl text-white transition hover:bg-black/75"
